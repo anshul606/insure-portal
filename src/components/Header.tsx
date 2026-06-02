@@ -5,17 +5,18 @@ import IconButton from "@mui/material/IconButton";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 
-import { Bell, Menu } from "lucide-react";
+import { Bell } from "lucide-react";
 
 export default function Header() {
   return (
     <AppBar
-      position="sticky"
+      position="fixed"
       elevation={0}
       color="inherit"
       sx={{
         bgcolor: "background.paper",
         borderBottom: "1px solid #E4E3DF",
+        zIndex: (theme) => theme.zIndex.drawer + 1,
       }}
     >
       <Toolbar
@@ -30,17 +31,36 @@ export default function Header() {
           sx={{
             display: "flex",
             alignItems: "center",
-            gap: 1,
+            gap: 1.5,
           }}
         >
-          <IconButton>
-            <Menu size={22} />
-          </IconButton>
+          <Box
+            sx={{
+              width: 38,
+              height: 38,
+              borderRadius: "10px",
+
+              background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
+
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+
+              color: "#fff",
+              fontWeight: 700,
+              fontSize: 14,
+
+              boxShadow: "0 6px 18px rgba(79,70,229,0.25)",
+            }}
+          >
+            IP
+          </Box>
 
           <Typography
             variant="h6"
             sx={{
               fontWeight: 700,
+              letterSpacing: "-0.03em",
             }}
           >
             InsurePortal

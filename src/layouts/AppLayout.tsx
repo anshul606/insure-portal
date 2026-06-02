@@ -1,6 +1,6 @@
 import Box from "@mui/material/Box";
 
-import Header from "../components/header";
+import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 
 type AppLayoutProps = {
@@ -11,16 +11,16 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
         bgcolor: "background.default",
+        minHeight: "100vh",
       }}
     >
       <Header />
 
       <Box
         sx={{
-          minHeight: "100vh",
           display: "flex",
+          pt: "64px",
         }}
       >
         <Sidebar />

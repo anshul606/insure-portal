@@ -63,7 +63,9 @@ export default function Sidebar() {
     <Box
       sx={{
         width: 280,
-        minHeight: "calc(100vh - 64px)",
+        height: "calc(100vh - 64px)",
+        position: "sticky",
+        top: 64,
         bgcolor: "background.paper",
         borderRight: "1px solid #E4E3DF",
         p: 2,

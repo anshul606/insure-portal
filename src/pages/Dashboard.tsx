@@ -1,19 +1,21 @@
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 
+import DashboardHeader from "../components/dashboard/DashboardHeader";
 import AppLayout from "../layouts/AppLayout";
+import DashboardStats from "../components/dashboard/DashboardStats";
 
 export default function DashboardPage() {
   return (
     <AppLayout>
       <Box
         sx={{
-          p: 3,
+          p: 4,
         }}
       >
-        <Typography variant="h4">Dashboard</Typography>
-
-        <Typography color="text.secondary">Welcome back.</Typography>
+        <DashboardHeader />
+        <Box sx={{ mt: 4 }}>
+          <DashboardStats />
+        </Box>
       </Box>
     </AppLayout>
   );
