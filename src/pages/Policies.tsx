@@ -2,7 +2,6 @@ import Box from "@mui/material/Box";
 
 import Welcome from "../components/Welcome";
 import AppLayout from "../layouts/AppLayout";
-import DashboardStats from "../components/dashboard/DashboardStats";
 
 export default function DashboardPage() {
   return (
@@ -13,12 +12,9 @@ export default function DashboardPage() {
         }}
       >
         <Welcome
-          title="Dashboard"
-          content="Welcome back. Here's your family's insurance overview."
+          title="Policies"
+          content="All active and archived policies across your family group."
         ></Welcome>
-        <Box sx={{ mt: 4 }}>
-          <DashboardStats />
-        </Box>
       </Box>
     </AppLayout>
   );

@@ -15,3 +15,16 @@ body,
 body {
   background: #F7F6F3;
 }
+
+.nav-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.nav-link:visited,
+.nav-link:hover,
+.nav-link:active,
+.nav-link:focus {
+  text-decoration: none;
+  color: inherit;
+}

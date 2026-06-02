@@ -1,5 +1,7 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import { NavLink } from "react-router-dom";
+import "../index.css";
 
 import {
   LayoutDashboard,
@@ -18,43 +20,42 @@ type NavItemProps = {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
+  to: string;
 };
 
-function NavItem({ icon, label, active = false }: NavItemProps) {
+function NavItem({ icon, label, to }: NavItemProps) {
   return (
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 1.5,
+    <NavLink to={to} className="nav-link">
+      {({ isActive }) => (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            px: 1.5,
+            py: 1,
+            borderRadius: 2,
+            cursor: "pointer",
+            bgcolor: isActive ? "rgba(20,86,160,0.08)" : "transparent",
+            color: isActive ? "#1456A0" : "inherit",
+            "&:hover": {
+              bgcolor: "rgba(20,86,160,0.05)",
+            },
+          }}
+        >
+          {icon}
 
-        px: 1.5,
-        py: 1,
-
-        borderRadius: 2,
-
-        cursor: "pointer",
-
-        bgcolor: active ? "rgba(20,86,160,0.08)" : "transparent",
-
-        color: active ? "#1456A0" : "inherit",
-
-        "&:hover": {
-          bgcolor: "rgba(20,86,160,0.05)",
-        },
-      }}
-    >
-      {icon}
-
-      <Typography
-        sx={{
-          fontSize: 14,
-          fontWeight: active ? 600 : 400,
-        }}
-      >
-        {label}
-      </Typography>
-    </Box>
+          <Typography
+            sx={{
+              fontSize: 14,
+              fontWeight: isActive ? 600 : 400,
+            }}
+          >
+            {label}
+          </Typography>
+        </Box>
+      )}
+    </NavLink>
   );
 }
 
@@ -82,16 +83,20 @@ export default function Sidebar() {
 
       <Box sx={{ mt: 1, mb: 3 }}>
         <NavItem
-          active
           icon={<LayoutDashboard size={18} />}
           label="Dashboard"
+          to="/dashboard"
         />
 
-        <NavItem icon={<Shield size={18} />} label="Policies" />
+        <NavItem icon={<Shield size={18} />} label="Policies" to="/policies" />
 
-        <NavItem icon={<FileText size={18} />} label="Claims" />
+        <NavItem icon={<FileText size={18} />} label="Claims" to="/claims" />
 
-        <NavItem icon={<Pencil size={18} />} label="Endorsements" />
+        <NavItem
+          icon={<Pencil size={18} />}
+          label="Endorsements"
+          to="/endorsements"
+        />
       </Box>
 
       <Typography variant="overline" color="text.secondary">
@@ -99,11 +104,19 @@ export default function Sidebar() {
       </Typography>
 
       <Box sx={{ mt: 1, mb: 3 }}>
-        <NavItem icon={<FileText size={18} />} label="Requirements" />
+        <NavItem
+          icon={<FileText size={18} />}
+          label="Requirements"
+          to="/requirements"
+        />
 
-        <NavItem icon={<Upload size={18} />} label="Upload Policy" />
+        <NavItem
+          icon={<Upload size={18} />}
+          label="Upload Policy"
+          to="/upload"
+        />
 
-        <NavItem icon={<Ticket size={18} />} label="Tickets" />
+        <NavItem icon={<Ticket size={18} />} label="Tickets" to="/tickets" />
       </Box>
 
       <Typography variant="overline" color="text.secondary">
@@ -111,13 +124,17 @@ export default function Sidebar() {
       </Typography>
 
       <Box sx={{ mt: 1 }}>
-        <NavItem icon={<Users size={18} />} label="Members" />
+        <NavItem icon={<Users size={18} />} label="Members" to="/members" />
 
-        <NavItem icon={<FolderOpen size={18} />} label="Documents" />
+        <NavItem
+          icon={<FolderOpen size={18} />}
+          label="Documents"
+          to="/documents"
+        />
 
-        <NavItem icon={<Bell size={18} />} label="Alerts" />
+        <NavItem icon={<Bell size={18} />} label="Alerts" to="/alerts" />
 
-        <NavItem icon={<User size={18} />} label="Profile" />
+        <NavItem icon={<User size={18} />} label="Profile" to="/profile" />
       </Box>
     </Box>
   );

@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 
 import LoginPage from "../pages/Login.tsx";
 import DashboardPage from "../pages/Dashboard.tsx";
+import PoliciesPage from "../pages/Policies.tsx";
 
 export const router = createBrowserRouter([
   {
@@ -12,5 +13,10 @@ export const router = createBrowserRouter([
   {
     path: "/dashboard",
     element: <DashboardPage />,
+  },
+
+  {
+    path: "/policies",
+    element: <PoliciesPage />,
   },
 ]);

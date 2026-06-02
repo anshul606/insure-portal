@@ -14,7 +14,12 @@ const members: MemberTab[] = [
   { id: "aarav", name: "Aarav Sharma" },
 ];
 
-export default function DashboardHeader() {
+type dashboardHeaderProps = {
+  title: string;
+  content: string;
+};
+
+export default function Welcome({ title, content }: dashboardHeaderProps) {
   const [activeTab, setActiveTab] = useState("all");
 
   return (
@@ -27,7 +32,7 @@ export default function DashboardHeader() {
           mb: 0.5,
         }}
       >
-        Dashboard
+        {title}
       </Typography>
 
       <Typography
@@ -38,7 +43,7 @@ export default function DashboardHeader() {
           mb: 2,
         }}
       >
-        Overview of your family's insurance portfolio
+        {content}
       </Typography>
 
       <Box
