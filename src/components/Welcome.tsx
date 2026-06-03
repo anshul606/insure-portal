@@ -26,7 +26,7 @@ export default function Welcome({ title, content }: dashboardHeaderProps) {
     <Box>
       <Typography
         sx={{
-          fontSize: 18,
+          fontSize: { xs: 16, md: 18 },
           fontWeight: 600,
           color: "text.primary",
           mb: 0.5,
@@ -51,19 +51,20 @@ export default function Welcome({ title, content }: dashboardHeaderProps) {
           bgcolor: "background.paper",
           border: "1px solid",
           borderColor: "border.main",
-          borderRadius: 1.5,
-          p: 1.5,
+          borderRadius: 2,
+          p: { xs: 1.25, md: 1.5 },
           display: "flex",
-          alignItems: "center",
-          gap: 1,
-          flexWrap: "wrap",
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: { xs: "flex-start", sm: "center" },
+          gap: { xs: 1.25, sm: 1 },
         }}
       >
         <Box
           sx={{
             display: "flex",
             gap: 0.75,
-            flex: 1,
+            width: { xs: "100%", sm: "auto" },
+            flex: { sm: 1 },
             overflowX: "auto",
             scrollbarWidth: "none",
             "&::-webkit-scrollbar": {
@@ -108,6 +109,7 @@ export default function Welcome({ title, content }: dashboardHeaderProps) {
             color: "text.disabled",
             whiteSpace: "nowrap",
             flexShrink: 0,
+            px: { xs: 0.5, sm: 0 },
           }}
         >
           4 members · ₹1.5 Cr
