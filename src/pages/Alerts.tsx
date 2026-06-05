@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import Welcome from "../components/Welcome";
 import AppLayout from "../layouts/AppLayout";
 
-export default function PoliciesPage() {
+export default function AlertsPage() {
   return (
     <AppLayout>
       <Box
@@ -12,8 +12,8 @@ export default function PoliciesPage() {
         }}
       >
         <Welcome
-          title="Policies"
-          content="Manage your account settings and preferences."
+          title="Alerts"
+          content="Stay updated with important notifications and reminders."
         ></Welcome>
       </Box>
     </AppLayout>

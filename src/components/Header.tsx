@@ -8,10 +8,12 @@ import MenuItem from "@mui/material/MenuItem";
 import Divider from "@mui/material/Divider";
 import { Bell, RefreshCcw, ChevronDown } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PopoverMenu from "./PopoverMenu";
 import { useMember } from "../contexts/MemberContext";
 
 export default function Header() {
+  const navigate = useNavigate();
   const [groupAnchorEl, setGroupAnchorEl] = useState<null | HTMLElement>(null);
   const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -157,10 +159,10 @@ export default function Header() {
           <Typography sx={{ fontSize: 12, color: "text.secondary" }}>rajesh@example.com</Typography>
         </Box>
         <Divider sx={{ my: 0.5 }} />
-        <MenuItem onClick={handleProfileClose} sx={{ borderRadius: 1.5, fontSize: 13, py: 1 }}>Profile settings</MenuItem>
-        <MenuItem onClick={handleProfileClose} sx={{ borderRadius: 1.5, fontSize: 13, py: 1 }}>Help & Support</MenuItem>
+        <MenuItem onClick={() => { handleProfileClose(); navigate("/profile"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1 }}>Profile settings</MenuItem>
+        <MenuItem onClick={() => { handleProfileClose(); navigate("/tickets"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1 }}>Help & Support</MenuItem>
         <Divider sx={{ my: 0.5 }} />
-        <MenuItem onClick={handleProfileClose} sx={{ borderRadius: 1.5, fontSize: 13, py: 1, color: "error.main" }}>Logout</MenuItem>
+        <MenuItem onClick={() => { handleProfileClose(); navigate("/"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1, color: "error.main" }}>Logout</MenuItem>
       </PopoverMenu>
     </>
   );

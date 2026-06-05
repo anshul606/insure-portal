@@ -44,13 +44,16 @@ export default function QuickActions() {
                             textAlign: "center",
                             cursor: "pointer",
                             transition: "all 0.15s ease",
-                            "&:hover": {
-                                borderColor: "primary.main",
-                                transform: "translateY(-2px)",
-                                boxShadow: "0 4px 12px rgba(20,86,160,0.08)",
+                            "@media (hover: hover)": {
+                                "&:hover": {
+                                    borderColor: "primary.main",
+                                    transform: "translateY(-2px)",
+                                    boxShadow: "0 4px 12px rgba(20,86,160,0.08)",
+                                },
                             },
                             "&:active": {
-                                transform: "translateY(0)",
+                                borderColor: "primary.main",
+                                transform: "scale(0.97)",
                             },
                         }}
                     >
