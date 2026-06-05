@@ -85,7 +85,6 @@ export default function BottomNav({ onOpenDrawer }: BottomNavProps) {
         );
       })}
 
-      {/* Menu item opens drawer */}
       <Box
         onClick={onOpenDrawer}
         sx={{

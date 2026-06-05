@@ -39,11 +39,10 @@ export default function DashboardPage() {
 
         <QuickActions />
 
-        {/* Lower Dashboard Grid (Coverage & Activity) */}
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" }, // stacked on xs, side-by-side on md
+            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
             gap: 3,
             mt: 4,
           }}

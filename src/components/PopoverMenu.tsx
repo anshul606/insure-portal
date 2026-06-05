@@ -10,7 +10,13 @@ type PopoverMenuProps = {
   width?: number | string;
 };
 
-export default function PopoverMenu({ anchorEl, open, onClose, children, width = 240 }: PopoverMenuProps) {
+export default function PopoverMenu({
+  anchorEl,
+  open,
+  onClose,
+  children,
+  width = 240,
+}: PopoverMenuProps) {
   return (
     <Popover
       open={open}
@@ -35,11 +41,12 @@ export default function PopoverMenu({ anchorEl, open, onClose, children, width =
             borderColor: "divider",
             p: 1,
           },
-        }
+        },
       }}
     >
-      {/* We replace Box with MenuList here to provide the required context to MenuItems */}
-      <MenuList sx={{ p: 0, outline: 0, display: "flex", flexDirection: "column" }}>
+      <MenuList
+        sx={{ p: 0, outline: 0, display: "flex", flexDirection: "column" }}
+      >
         {children}
       </MenuList>
     </Popover>

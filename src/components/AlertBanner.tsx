@@ -59,7 +59,6 @@ export default function AlertBanner({
         p: 1.5,
       }}
     >
-      {/* Icon */}
       <Box
         sx={{
           fontSize: 16,
@@ -70,7 +69,6 @@ export default function AlertBanner({
         {icon}
       </Box>
 
-      {/* Body */}
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography
           sx={{
@@ -93,7 +91,6 @@ export default function AlertBanner({
         </Typography>
       </Box>
 
-      {/* Action Button (optional) */}
       {actionLabel && (
         <Box sx={{ flexShrink: 0, alignSelf: "center" }}>
           <Button
