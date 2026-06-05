@@ -4,7 +4,7 @@ import Chip from "@mui/material/Chip";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import IconButton from "@mui/material/IconButton";
-import { X } from "lucide-react";
+import { Download, X } from "lucide-react";
 import { type ReactNode } from "react";
 import { type PolicyData } from "./PolicyCard";
 
@@ -394,8 +394,9 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
                 outline: "none !important",
               },
             }}
+            startIcon={<Download size={16} />}
           >
-            ⬇ Download Certificate
+            Download Certificate
           </Button>
         )}
       </Box>

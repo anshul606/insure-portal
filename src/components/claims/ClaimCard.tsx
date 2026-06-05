@@ -24,6 +24,7 @@ export default function ClaimCard({
         borderRadius: 3,
         p: 1.75,
         cursor: "pointer",
+        overflow: "hidden",
         transition: "border-color 0.15s",
         "@media (hover: hover)": {
           "&:hover": {

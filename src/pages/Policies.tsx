@@ -16,19 +16,28 @@ export default function PoliciesPage() {
 
   return (
     <AppLayout>
-      <Box sx={{ p: 4 }}>
+      <Box
+          sx={{
+            p: { xs: 2, md: 4 },
+            overflow: "hidden",
+          }}
+        >
         <Box
           sx={{
             display: "flex",
-            alignItems: "flex-start",
+            flexDirection: { xs: "column", sm: "row" },
+            alignItems: { xs: "stretch", sm: "flex-start" },
             justifyContent: "space-between",
             mb: 2,
+            gap: 1,
           }}
         >
-          <Welcome
-            title="Policies"
-            content="All active and archived policies across your family group."
-          />
+          <Box sx={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
+            <Welcome
+              title="Policies"
+              content="All active and archived policies across your family group."
+            />
+          </Box>
 
           <Button
             size="small"
@@ -45,6 +54,7 @@ export default function PoliciesPage() {
               color: "info.main",
               boxShadow: "none",
               border: "1px solid #B5D4F4",
+              flexShrink: 0,
               "&:hover": {
                 bgcolor: "info.light",
                 opacity: 0.9,

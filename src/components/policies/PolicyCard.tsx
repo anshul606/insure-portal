@@ -48,6 +48,7 @@ export default function PolicyCard({ policy, onClick }: { policy: PolicyData; on
                 borderRadius: 3,
                 p: 1.75,
                 cursor: "pointer",
+                overflow: "hidden",
                 transition: "border-color 0.15s",
                 "@media (hover: hover)": {
                     "&:hover": { borderColor: "primary.main" },

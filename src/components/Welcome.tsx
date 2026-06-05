@@ -11,7 +11,7 @@ export default function Welcome({ title, content }: dashboardHeaderProps) {
   const { members, selectedMemberId, setSelectedMemberId } = useMember();
 
   return (
-    <Box>
+    <Box sx={{ overflow: "hidden", minWidth: 0 }}>
       <Typography
         sx={{
           fontSize: { xs: 16, md: 18 },
