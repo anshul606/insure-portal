@@ -1,18 +1,6 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import { useState } from "react";
-
-type MemberTab = {
-  id: string;
-  name: string;
-};
-
-const members: MemberTab[] = [
-  { id: "all", name: "All Members" },
-  { id: "rajesh", name: "Rajesh Sharma" },
-  { id: "priya", name: "Priya Sharma" },
-  { id: "aarav", name: "Aarav Sharma" },
-];
+import { useMember } from "../contexts/MemberContext";
 
 type dashboardHeaderProps = {
   title: string;
@@ -20,7 +8,7 @@ type dashboardHeaderProps = {
 };
 
 export default function Welcome({ title, content }: dashboardHeaderProps) {
-  const [activeTab, setActiveTab] = useState("all");
+  const { members, selectedMemberId, setSelectedMemberId } = useMember();
 
   return (
     <Box>
@@ -76,7 +64,7 @@ export default function Welcome({ title, content }: dashboardHeaderProps) {
           {members.map((member) => (
             <Box
               key={member.id}
-              onClick={() => setActiveTab(member.id)}
+              onClick={() => setSelectedMemberId(member.id)}
               sx={{
                 px: 1.75,
                 py: 0.75,
@@ -85,16 +73,16 @@ export default function Welcome({ title, content }: dashboardHeaderProps) {
                 cursor: "pointer",
                 border: "1px solid",
                 borderColor:
-                  activeTab === member.id ? "#B5D4F4" : "border.main",
+                  selectedMemberId === member.id ? "#B5D4F4" : "border.main",
                 bgcolor:
-                  activeTab === member.id ? "info.light" : "surface.secondary",
-                color: activeTab === member.id ? "info.main" : "text.secondary",
-                fontWeight: activeTab === member.id ? 500 : 400,
+                  selectedMemberId === member.id ? "info.light" : "surface.secondary",
+                color: selectedMemberId === member.id ? "info.main" : "text.secondary",
+                fontWeight: selectedMemberId === member.id ? 500 : 400,
                 whiteSpace: "nowrap",
                 flexShrink: 0,
                 transition: "all 0.12s",
                 "&:hover": {
-                  bgcolor: activeTab === member.id ? "info.light" : "grey.100",
+                  bgcolor: selectedMemberId === member.id ? "info.light" : "grey.100",
                 },
               }}
             >

@@ -23,22 +23,22 @@ export default function AlertBanner({
     switch (type) {
       case "info":
         return {
-          bg: "#EBF3FC", // --blue-bg
+          bg: "#EBF3FC",
           border: "#C5DAF5",
         };
       case "warn":
         return {
-          bg: "#FAEEDA", // --amber-bg
+          bg: "#FAEEDA",
           border: "#FAC775",
         };
       case "success":
         return {
-          bg: "#EAF3DE", // --green-bg
+          bg: "#EAF3DE",
           border: "#C0DD97",
         };
       case "danger":
         return {
-          bg: "#FCEBEB", // --red-bg
+          bg: "#FCEBEB",
           border: "#F0B0B0",
         };
     }
@@ -51,12 +51,12 @@ export default function AlertBanner({
       sx={{
         display: "flex",
         alignItems: "flex-start",
-        gap: 1.25, // 10px
+        gap: 1.25,
         bgcolor: colors.bg,
         border: "1px solid",
         borderColor: colors.border,
-        borderRadius: 1, // 8px (var(--radius))
-        p: 1.5, // 12px
+        borderRadius: 1,
+        p: 1.5,
       }}
     >
       {/* Icon */}
@@ -64,7 +64,7 @@ export default function AlertBanner({
         sx={{
           fontSize: 16,
           flexShrink: 0,
-          mt: 0.125, // 1px
+          mt: 0.125,
         }}
       >
         {icon}
@@ -85,7 +85,7 @@ export default function AlertBanner({
           sx={{
             fontSize: 11,
             color: "text.secondary",
-            mt: 0.25, // 2px
+            mt: 0.25,
             lineHeight: 1.4,
           }}
         >
@@ -105,8 +105,8 @@ export default function AlertBanner({
               fontWeight: 500,
               textTransform: "none",
               minHeight: 32,
-              px: 1.375, // 11px
-              py: 0.75, // 6px
+              px: 1.375,
+              py: 0.75,
               bgcolor: "info.light",
               color: "info.main",
               boxShadow: "none",
