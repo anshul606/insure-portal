@@ -26,6 +26,7 @@ export type PolicyData = {
 type PolicyContextType = {
   policies: PolicyData[];
   getPoliciesByMember: (memberId: string) => PolicyData[];
+  getClaimablePolicies: (memberId: string) => PolicyData[];
   getPolicyById: (id: string) => PolicyData | undefined;
   activePoliciesCount: number;
   expiringPoliciesCount: number;
@@ -158,6 +159,14 @@ export function PolicyProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  // ← ADD THIS FUNCTION
+  const getClaimablePolicies = (memberId: string): PolicyData[] => {
+    const memberPolicies = getPoliciesByMember(memberId);
+    return memberPolicies.filter(
+      (policy) => policy.status === "active" || policy.status === "due",
+    );
+  };
+
   const getPolicyById = (id: string): PolicyData | undefined => {
     return policiesList.find((policy) => policy.id === id);
   };
@@ -175,6 +184,7 @@ export function PolicyProvider({ children }: { children: ReactNode }) {
       value={{
         policies: policiesList,
         getPoliciesByMember,
+        getClaimablePolicies, // ← ADD THIS
         getPolicyById,
         activePoliciesCount,
         expiringPoliciesCount,

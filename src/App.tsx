@@ -3,6 +3,7 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "./app/router";
 import { MemberProvider } from "./contexts/MemberContext";
 import { PolicyProvider } from "./contexts/PolicyContext";
+import { ClaimProvider } from "./contexts/ClaimContext";
 import { theme } from "./app/theme";
 
 function App() {
@@ -10,7 +11,9 @@ function App() {
     <ThemeProvider theme={theme}>
       <MemberProvider>
         <PolicyProvider>
-          <RouterProvider router={router} />
+          <ClaimProvider>
+            <RouterProvider router={router} />
+          </ClaimProvider>
         </PolicyProvider>
       </MemberProvider>
     </ThemeProvider>
