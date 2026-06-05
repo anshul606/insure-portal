@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import { usePolicy } from "../../contexts/PolicyContext";
 
 type StatProps = {
   title: string;
@@ -55,6 +56,8 @@ function StatCard({ title, value, text }: StatProps) {
 }
 
 export default function DashboardStats() {
+  const { activePoliciesCount, expiringPoliciesCount } = usePolicy();
+
   return (
     <Box
       sx={{
@@ -66,10 +69,18 @@ export default function DashboardStats() {
         gap: 1.25,
       }}
     >
-      <StatCard title="Policies" value="4" text="Across 3 members" />
+      <StatCard
+        title="Policies"
+        value={activePoliciesCount.toString()}
+        text="Across 3 members"
+      />
       <StatCard title="Coverage" value="₹1.5 Cr" text="Combined coverage" />
       <StatCard title="Claims" value="2" text="₹1.48L pending" />
-      <StatCard title="Alerts" value="3" text="Next 30 days" />
+      <StatCard
+        title="Alerts"
+        value={expiringPoliciesCount.toString()}
+        text="Next 30 days"
+      />
     </Box>
   );
 }

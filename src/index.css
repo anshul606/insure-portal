@@ -27,6 +27,15 @@
   }
 }
 
+.MuiDialog-paper,
+.MuiDialog-paper:focus,
+.MuiDialog-paper:focus-visible,
+.MuiDialog-container,
+.MuiDialog-container:focus {
+  outline: none !important;
+}
+
+
 html,
 body,
 #root {
