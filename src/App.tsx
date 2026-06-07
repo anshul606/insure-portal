@@ -4,6 +4,7 @@ import { router } from "./app/router";
 import { MemberProvider } from "./contexts/MemberContext";
 import { PolicyProvider } from "./contexts/PolicyContext";
 import { ClaimProvider } from "./contexts/ClaimContext";
+import { EndorsementProvider } from "./contexts/EndorsementContext";
 import { theme } from "./app/theme";
 
 function App() {
@@ -12,7 +13,9 @@ function App() {
       <MemberProvider>
         <PolicyProvider>
           <ClaimProvider>
-            <RouterProvider router={router} />
+            <EndorsementProvider>
+              <RouterProvider router={router} />
+            </EndorsementProvider>
           </ClaimProvider>
         </PolicyProvider>
       </MemberProvider>

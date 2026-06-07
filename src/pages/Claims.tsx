@@ -11,7 +11,7 @@ import { Plus, Paperclip, ClipboardList } from "lucide-react";
 
 import AppLayout from "../layouts/AppLayout";
 import Welcome from "../components/Welcome";
-import ClaimCard from "../components/claims/ClaimCard";
+import ClaimsTable from "../components/claims/ClaimsTable";
 import { useMember } from "../contexts/MemberContext";
 import { useClaim } from "../contexts/ClaimContext";
 import { usePolicy } from "../contexts/PolicyContext";
@@ -446,38 +446,11 @@ export default function ClaimsPage() {
           </Box>
         )}
 
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" },
-            gap: 1.25,
-          }}
-        >
-          {claims.map((claim) => (
-            <ClaimCard
-              key={claim.id}
-              claim={claim}
-              onClick={() => {
-                console.log("Open claim detail:", claim.id);
-              }}
-            />
-          ))}
-        </Box>
-
-        {claims.length === 0 && (
-          <Box
-            sx={{
-              textAlign: "center",
-              py: 8,
-            }}
-          >
-            <Typography
-              sx={{
-                fontSize: 44,
-                mb: 1.5,
-                opacity: 0.55,
-              }}
-            >
+        {claims.length > 0 ? (
+          <ClaimsTable claims={claims} />
+        ) : (
+          <Box sx={{ textAlign: "center", py: 8 }}>
+            <Typography sx={{ fontSize: 44, mb: 1.5, opacity: 0.55 }}>
               <ClipboardList size={44} />
             </Typography>
             <Typography
@@ -503,6 +476,7 @@ export default function ClaimsPage() {
             </Typography>
           </Box>
         )}
+
       </Box>
     </AppLayout>
   );
