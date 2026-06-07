@@ -2,7 +2,7 @@ import { useState } from "react";
 import Box from "@mui/material/Box";
 import PolicyCard from "./PolicyCard";
 import PolicyDetailModal from "./PolicyDetailModal";
-import { type PolicyData } from "../../contexts/PolicyContext";
+import type { PolicyData } from "../../types/models";
 
 export default function PolicyGrid({ policies }: { policies: PolicyData[] }) {
   const [selectedPolicy, setSelectedPolicy] = useState<PolicyData | null>(null);

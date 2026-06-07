@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
+import UiCard from "../shared/UiCard";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import { Pencil, Lock, Check } from "lucide-react";
-import { type MemberProfile } from "../../contexts/MemberContext";
+import type { MemberProfile } from "../../types/models";
 
 const labelSx = {
     fontSize: 12,
@@ -75,15 +76,7 @@ export default function ProfileCard({
     };
 
     return (
-        <Box
-            sx={{
-                bgcolor: "background.paper",
-                border: "1px solid",
-                borderColor: "border.main",
-                borderRadius: 3,
-                p: 2,
-            }}
-        >
+        <UiCard>
             <Box
                 sx={{
                     display: "flex",
@@ -317,6 +310,6 @@ export default function ProfileCard({
                     </>
                 )}
             </Box>
-        </Box>
+        </UiCard>
     );
 }

@@ -1,9 +1,10 @@
 import Box from "@mui/material/Box";
+import UiCard from "../shared/UiCard";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
+import type { EndorsementData } from "../../types/models";
 import {
-    type EndorsementData,
     statusMap,
 } from "../../contexts/EndorsementContext";
 
@@ -13,15 +14,7 @@ export default function EndorsementsTable({
     endorsements: EndorsementData[];
 }) {
     return (
-        <Box
-            sx={{
-                bgcolor: "background.paper",
-                border: "1px solid",
-                borderColor: "border.main",
-                borderRadius: 3,
-                overflow: "hidden",
-            }}
-        >
+        <UiCard sx={{ p: 0, overflow: "hidden" }}>
             <Box
                 sx={{
                     display: { xs: "none", md: "grid" },
@@ -224,6 +217,6 @@ export default function EndorsementsTable({
                     </Box>
                 );
             })}
-        </Box>
+        </UiCard>
     );
 }

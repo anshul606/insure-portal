@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Box from "@mui/material/Box";
+import UiCard from "../shared/UiCard";
 import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 
@@ -26,15 +27,7 @@ export default function PreferencesCard() {
     });
 
     return (
-        <Box
-            sx={{
-                bgcolor: "background.paper",
-                border: "1px solid",
-                borderColor: "border.main",
-                borderRadius: 3,
-                p: 2,
-            }}
-        >
+        <UiCard>
             <Typography
                 sx={{ fontSize: 14, fontWeight: 600, color: "text.primary", mb: 1 }}
             >
@@ -82,6 +75,6 @@ export default function PreferencesCard() {
                     />
                 </Box>
             ))}
-        </Box>
+        </UiCard>
     );
 }

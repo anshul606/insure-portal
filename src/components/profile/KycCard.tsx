@@ -1,9 +1,10 @@
 import Box from "@mui/material/Box";
+import UiCard from "../shared/UiCard";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
 import { AlertTriangle } from "lucide-react";
-import { type KycItem } from "../../contexts/MemberContext";
+import type { KycItem } from "../../types/models";
 
 const kycStatusMap = {
     verified: { label: "✓ Verified", color: "#3B6D11", bg: "#EAF3DE" },
@@ -15,15 +16,7 @@ export default function KycCard({ kycItems }: { kycItems: KycItem[] }) {
     const pendingCount = kycItems.filter((k) => k.status !== "verified").length;
 
     return (
-        <Box
-            sx={{
-                bgcolor: "background.paper",
-                border: "1px solid",
-                borderColor: "border.main",
-                borderRadius: 3,
-                p: 2,
-            }}
-        >
+        <UiCard>
             <Typography
                 sx={{ fontSize: 14, fontWeight: 600, color: "text.primary", mb: 1.5 }}
             >
@@ -144,6 +137,6 @@ export default function KycCard({ kycItems }: { kycItems: KycItem[] }) {
                     </Typography>
                 </Box>
             )}
-        </Box>
+        </UiCard>
     );
 }

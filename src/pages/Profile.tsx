@@ -26,10 +26,12 @@ export default function ProfilePage() {
           overflow: "hidden",
         }}
       >
-        <Welcome
-          title="Profile & KYC"
-          content="Your personal details and KYC verification status."
-        />
+        <Box sx={{ mb: 2 }}>
+          <Welcome
+            title="Profile & KYC"
+            content="Your personal details and KYC verification status."
+          />
+        </Box>
 
         <Box
           sx={{

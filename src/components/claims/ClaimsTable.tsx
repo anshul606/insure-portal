@@ -1,20 +1,14 @@
 import Box from "@mui/material/Box";
+import UiCard from "../shared/UiCard";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
-import { type ClaimData, statusMap } from "../../contexts/ClaimContext";
+import type { ClaimData } from "../../types/models";
+import { statusMap } from "../../contexts/ClaimContext";
 
 export default function ClaimsTable({ claims }: { claims: ClaimData[] }) {
   return (
-    <Box
-      sx={{
-        bgcolor: "background.paper",
-        border: "1px solid",
-        borderColor: "border.main",
-        borderRadius: 3,
-        overflow: "hidden",
-      }}
-    >
+    <UiCard sx={{ p: 0, overflow: "hidden" }}>
       <Box
         sx={{
           display: { xs: "none", md: "grid" },
@@ -224,6 +218,6 @@ export default function ClaimsTable({ claims }: { claims: ClaimData[] }) {
           </Box>
         );
       })}
-    </Box>
+    </UiCard>
   );
 }

@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import UiCard from "../shared/UiCard";
 import Typography from "@mui/material/Typography";
 import { usePolicy } from "../../contexts/PolicyContext";
 
@@ -59,8 +60,9 @@ export default function DashboardStats() {
   const { activePoliciesCount, expiringPoliciesCount } = usePolicy();
 
   return (
-    <Box
+    <UiCard
       sx={{
+        p: 2,
         display: "grid",
         gridTemplateColumns: {
           xs: "1fr 1fr",
@@ -81,6 +83,6 @@ export default function DashboardStats() {
         value={expiringPoliciesCount.toString()}
         text="Next 30 days"
       />
-    </Box>
+    </UiCard>
   );
 }

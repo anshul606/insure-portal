@@ -101,7 +101,7 @@ export default function Header() {
             >
               <RefreshCcw size={14} color="#6B6963" />
               <Typography sx={{ fontSize: 12, fontWeight: 500, color: "text.secondary" }}>
-                {activeMember.id === "all" ? "Sharma Family" : activeMember.name}
+                {activeMember?.id === "all" ? "Sharma Family" : activeMember?.name}
               </Typography>
               <ChevronDown size={14} color="#6B6963" />
             </Box>
