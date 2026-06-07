@@ -6,6 +6,7 @@ import { PolicyProvider } from "./contexts/PolicyContext";
 import { ClaimProvider } from "./contexts/ClaimContext";
 import { EndorsementProvider } from "./contexts/EndorsementContext";
 import { theme } from "./app/theme";
+import OfflineAlert from "./components/shared/OfflineAlert";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <PolicyProvider>
           <ClaimProvider>
             <EndorsementProvider>
+              <OfflineAlert />
               <RouterProvider router={router} />
             </EndorsementProvider>
           </ClaimProvider>
