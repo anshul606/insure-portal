@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import UiCard from "../shared/UiCard";
 import Typography from "@mui/material/Typography";
-import { usePolicy } from "../../contexts/PolicyContext";
+import { usePolicy } from "../../contexts/InsuranceContext";
 
 type StatProps = {
   title: string;

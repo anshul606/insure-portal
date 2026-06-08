@@ -31,7 +31,7 @@ export default function OfflineAlert() {
         left: 0,
         right: 0,
         bgcolor: "error.main",
-        color: "error.contrastText",
+        color: "#ffffff",
         py: 1.25,
         px: 2,
         display: "flex",

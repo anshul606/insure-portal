@@ -6,7 +6,7 @@ import AppLayout from "../layouts/AppLayout";
 import Welcome from "../components/Welcome";
 import PolicyGrid from "../components/policies/PolicyGrid";
 import { useMember } from "../contexts/MemberContext";
-import { usePolicy } from "../contexts/PolicyContext";
+import { usePolicy } from "../contexts/InsuranceContext";
 
 export default function PoliciesPage() {
   const { selectedMemberId } = useMember();
@@ -17,11 +17,11 @@ export default function PoliciesPage() {
   return (
     <AppLayout>
       <Box
-          sx={{
-            p: { xs: 2, md: 4 },
-            overflow: "hidden",
-          }}
-        >
+        sx={{
+          p: { xs: 2, md: 4 },
+          overflow: "hidden",
+        }}
+      >
         <Box
           sx={{
             display: "flex",

@@ -4,7 +4,7 @@ import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
 import type { ClaimData } from "../../types/models";
-import { statusMap } from "../../contexts/ClaimContext";
+import { claimStatusMap as statusMap } from "../../contexts/InsuranceContext";
 
 export default function ClaimsTable({ claims }: { claims: ClaimData[] }) {
   return (
