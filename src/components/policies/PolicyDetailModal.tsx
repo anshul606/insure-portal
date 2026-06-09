@@ -7,6 +7,7 @@ import IconButton from "@mui/material/IconButton";
 import { Download, X } from "lucide-react";
 import { type ReactNode } from "react";
 import { type PolicyData } from "./PolicyCard";
+import { getMemberListText } from "../../services/api";
 
 const statusMap = {
   active: { label: "Active", color: "#3B6D11", bg: "#EAF3DE" },
@@ -317,7 +318,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
           <DetailRow label="Deductible" value={policy.deductible || "N/A"} />
           <DetailRow
             label="Covered Members"
-            value={policy.members || policy.member}
+            value={getMemberListText(policy.memberIds)}
           />
         </Box>
 

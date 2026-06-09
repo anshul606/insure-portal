@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react";
 import type { Member, MemberProfile } from "../types/models";
 import { api } from "../services/api";
 
@@ -25,11 +31,12 @@ export function MemberProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const activeMember = members.find((m) => m.id === selectedMemberId) || members[0] || { id: "all", name: "Loading..." };
+  const activeMember = members.find((m) => m.id === selectedMemberId) ||
+    members[0] || { id: "all", name: "Loading..." };
 
   const getProfileForMember = (memberId: string): MemberProfile | undefined => {
-    const id = memberId === "all" ? "rajesh" : memberId;
-    return members.find((m) => m.id === id)?.profile;
+    if (memberId === "all") return undefined;
+    return members.find((m) => m.id === memberId)?.profile;
   };
 
   return (
@@ -50,6 +57,7 @@ export function MemberProvider({ children }: { children: ReactNode }) {
 
 export function useMember() {
   const context = useContext(MemberContext);
-  if (context === undefined) throw new Error("useMember must be used within a MemberProvider");
+  if (context === undefined)
+    throw new Error("useMember must be used within a MemberProvider");
   return context;
 }

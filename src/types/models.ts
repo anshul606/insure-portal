@@ -25,6 +25,11 @@ export type Member = {
   profile?: MemberProfile;
 };
 
+export type PolicyMember = {
+  policyId: string;
+  memberId: string;
+};
+
 export type PolicyData = {
   entityType: "policy";
   id: string;
@@ -32,8 +37,7 @@ export type PolicyData = {
   policyNumber: string;
   insurer: string;
   coverage: string;
-  member: string;
-  memberId: string;
+  memberIds: string[];
   renewDate: string;
   renewLabel: string;
   status: "active" | "due" | "upcoming" | "external";
@@ -44,7 +48,6 @@ export type PolicyData = {
   type?: string;
   premium?: string;
   deductible?: string;
-  members?: string;
   sumInsuredFull?: string;
 };
 
@@ -53,8 +56,7 @@ export type ClaimData = {
   id: string;
   claimNumber: string;
   policyName: string;
-  policyNumber: string;
-  policyId?: string;
+  policyId: string;
   memberName: string;
   memberId: string;
   claimType: string;
@@ -76,8 +78,7 @@ export type EndorsementData = {
   id: string;
   endorsementNumber: string;
   policyName: string;
-  policyNumber: string;
-  policyId?: string;
+  policyId: string;
   memberName: string;
   memberId: string;
   type: string;
@@ -98,6 +99,7 @@ export type RequirementData = {
   status: "quote-shared" | "processing" | "policy-issued";
   date: string;
   quotesAvailable?: number;
+  policyId?: string;
 };
 
 export type InsuranceEntity =

@@ -89,9 +89,7 @@ const policiesList: PolicyData[] = [
     insurer: "HDFC ERGO",
     coverage: "₹25L",
     sumInsuredFull: "₹25,00,000",
-    member: "3 members",
-    memberId: "all",
-    members: "Rajesh, Priya, Aarav",
+    memberIds: ["rajesh", "priya", "aarav"],
     renewDate: "28 Mar 2026",
     renewLabel: "Renews:",
     status: "active",
@@ -109,8 +107,7 @@ const policiesList: PolicyData[] = [
     insurer: "Bajaj Allianz",
     coverage: "IDV: ₹8.5L",
     sumInsuredFull: "₹8,50,000",
-    member: "Rajesh",
-    memberId: "rajesh",
+    memberIds: ["rajesh"],
     renewDate: "11 May 2025",
     renewLabel: "Expires:",
     renewDateColor: "#854F0B",
@@ -130,8 +127,7 @@ const policiesList: PolicyData[] = [
     insurer: "LIC of India",
     coverage: "SA: ₹1Cr",
     sumInsuredFull: "₹1,00,00,000",
-    member: "Rajesh",
-    memberId: "rajesh",
+    memberIds: ["rajesh"],
     renewDate: "01 Jan 2026",
     renewLabel: "Renews:",
     status: "active",
@@ -149,8 +145,7 @@ const policiesList: PolicyData[] = [
     insurer: "Star Health",
     coverage: "₹10L",
     sumInsuredFull: "₹10,00,000",
-    member: "Priya",
-    memberId: "priya",
+    memberIds: ["priya"],
     renewDate: "15 Aug 2025",
     renewLabel: "Renews:",
     status: "external",
@@ -168,8 +163,7 @@ const policiesList: PolicyData[] = [
     insurer: "New India Assurance",
     coverage: "₹80L",
     sumInsuredFull: "₹80,00,000",
-    member: "Rajesh",
-    memberId: "rajesh",
+    memberIds: ["rajesh"],
     renewDate: "30 Sep 2025",
     renewLabel: "Renews:",
     status: "active",
@@ -187,9 +181,7 @@ const policiesList: PolicyData[] = [
     insurer: "Tata AIG",
     coverage: "₹50L",
     sumInsuredFull: "₹50,00,000",
-    member: "Rajesh + Priya",
-    memberId: "all",
-    members: "Rajesh, Priya",
+    memberIds: ["rajesh", "priya"],
     renewDate: "20 May – 04 Jun",
     renewLabel: "Active:",
     status: "upcoming",
@@ -207,7 +199,6 @@ const claimsList: ClaimData[] = [
     id: "CL-2025-0124",
     claimNumber: "CL-2025-0124",
     policyName: "Health Floater",
-    policyNumber: "HLT-2024-0001432",
     policyId: "HLT-2024-0001432",
     memberName: "Priya Sharma",
     memberId: "priya",
@@ -223,7 +214,6 @@ const claimsList: ClaimData[] = [
     id: "CL-2025-0098",
     claimNumber: "CL-2025-0098",
     policyName: "Car Insurance",
-    policyNumber: "MTR-2024-0887654",
     policyId: "MTR-2024-0887654",
     memberName: "Rajesh Sharma",
     memberId: "rajesh",
@@ -239,7 +229,6 @@ const claimsList: ClaimData[] = [
     id: "CL-2024-0892",
     claimNumber: "CL-2024-0892",
     policyName: "Health Floater",
-    policyNumber: "HLT-2024-0001432",
     policyId: "HLT-2024-0001432",
     memberName: "Rajesh Sharma",
     memberId: "rajesh",
@@ -254,7 +243,6 @@ const claimsList: ClaimData[] = [
     id: "CL-2024-0771",
     claimNumber: "CL-2024-0771",
     policyName: "Car Insurance",
-    policyNumber: "MTR-2024-0887654",
     policyId: "MTR-2024-0887654",
     memberName: "Rajesh Sharma",
     memberId: "rajesh",
@@ -272,7 +260,6 @@ const endorsementsList: EndorsementData[] = [
     id: "END-2025-0041",
     endorsementNumber: "END-2025-0041",
     policyName: "Family Health Floater",
-    policyNumber: "HLT-2024-0001432",
     policyId: "HLT-2024-0001432",
     memberName: "Rajesh Sharma",
     memberId: "rajesh",
@@ -287,7 +274,6 @@ const endorsementsList: EndorsementData[] = [
     id: "END-2025-0033",
     endorsementNumber: "END-2025-0033",
     policyName: "Car Insurance — Maruti Swift",
-    policyNumber: "MTR-2024-0887654",
     policyId: "MTR-2024-0887654",
     memberName: "Rajesh Sharma",
     memberId: "rajesh",
@@ -302,7 +288,6 @@ const endorsementsList: EndorsementData[] = [
     id: "END-2024-0198",
     endorsementNumber: "END-2024-0198",
     policyName: "Family Health Floater",
-    policyNumber: "HLT-2024-0001432",
     policyId: "HLT-2024-0001432",
     memberName: "Priya Sharma",
     memberId: "priya",
@@ -318,7 +303,6 @@ const endorsementsList: EndorsementData[] = [
     id: "END-2024-0156",
     endorsementNumber: "END-2024-0156",
     policyName: "Term Life Insurance",
-    policyNumber: "LIF-2023-0045231",
     policyId: "LIF-2023-0045231",
     memberName: "Rajesh Sharma",
     memberId: "rajesh",
@@ -351,10 +335,36 @@ const requirementsList: RequirementData[] = [
     advisor: "Arjun Mehta",
     status: "policy-issued",
     date: "10 Aug 2024",
+    policyId: "LIF-2023-0045231",
   },
 ];
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export const getMemberDisplayText = (memberIds: string[]): string => {
+  const memberNames = memberIds.map((id) => {
+    const member = membersList.find((m) => m.id === id);
+    return member ? member.name.split(" ")[0] : id;
+  });
+
+  if (memberNames.length === 1) {
+    return memberNames[0];
+  } else if (memberNames.length === 2) {
+    return `${memberNames[0]} + ${memberNames[1]}`;
+  } else if (memberNames.length === 3) {
+    return "3 members";
+  } else {
+    return `${memberNames.length} members`;
+  }
+};
+
+export const getMemberListText = (memberIds: string[]): string => {
+  const memberNames = memberIds.map((id) => {
+    const member = membersList.find((m) => m.id === id);
+    return member ? member.name.split(" ")[0] : id;
+  });
+  return memberNames.join(", ");
+};
 
 export const api = {
   getMembers: async (): Promise<Member[]> => {

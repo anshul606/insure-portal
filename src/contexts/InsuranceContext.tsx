@@ -93,9 +93,7 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
 
   const getPoliciesByMember = (memberId: string): PolicyData[] => {
     if (memberId === "all") return policies;
-    return policies.filter(
-      (policy) => policy.memberId === memberId || policy.memberId === "all",
-    );
+    return policies.filter((policy) => policy.memberIds.includes(memberId));
   };
 
   const getClaimsByMember = (memberId: string): ClaimData[] => {
@@ -130,16 +128,12 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
   };
 
   const getClaimsByPolicyId = (policyId: string): ClaimData[] => {
-    return claims.filter(
-      (claim) => claim.policyId === policyId || claim.policyNumber === policyId,
-    );
+    return claims.filter((claim) => claim.policyId === policyId);
   };
 
   const getEndorsementsByPolicyId = (policyId: string): EndorsementData[] => {
     return endorsements.filter(
-      (endorsement) =>
-        endorsement.policyId === policyId ||
-        endorsement.policyNumber === policyId,
+      (endorsement) => endorsement.policyId === policyId,
     );
   };
 
