@@ -1,9 +1,13 @@
+import { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
+import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import Chip from "@mui/material/Chip";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 import { X } from "lucide-react";
 import type { RequirementData } from "../../types/models";
 import { requirementStatusMap as statusMap } from "../../contexts/InsuranceContext";
@@ -71,76 +75,22 @@ export default function QuoteModal({
   open: boolean;
   onClose: () => void;
 }) {
-  if (!req) return null;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [activeReq, setActiveReq] = useState<RequirementData | null>(null);
 
-  const st = statusMap[req.status as keyof typeof statusMap];
+  useEffect(() => {
+    if (req) setActiveReq(req);
+  }, [req]);
 
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="sm"
-      slotProps={{
-        backdrop: {
-          sx: {
-            bgcolor: "rgba(0,0,0,0.45)",
-          },
-        },
-        paper: {
-          sx: {
-            borderRadius: { xs: "12px 12px 0 0", sm: "12px" },
-            maxWidth: { xs: "100%", sm: "440px" },
-            width: "100%",
-            m: { xs: 0, sm: 2.5 },
-            maxHeight: { xs: "90vh", sm: "85vh" },
-            position: { xs: "fixed", sm: "relative" },
-            bottom: { xs: 0, sm: "auto" },
-            outline: "none !important",
-            "@keyframes slideUp": {
-              from: {
-                transform: "translateY(100%)",
-                opacity: 0,
-              },
-              to: {
-                transform: "translateY(0)",
-                opacity: 1,
-              },
-            },
-            animation: {
-              xs: "slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-              sm: "none",
-            },
-            "&:focus-visible": {
-              outline: "none !important",
-            },
-            "&:focus": {
-              outline: "none !important",
-            },
-          },
-        },
-      }}
-      sx={{
-        "& .MuiDialog-container": {
-          alignItems: { xs: "flex-end", sm: "center" },
-          "&:focus": {
-            outline: "none !important",
-          },
-        },
-        "& .MuiDialog-paper": {
-          outline: "none !important",
-          "&:focus": {
-            outline: "none !important",
-          },
-          "&:focus-visible": {
-            outline: "none !important",
-          },
-        },
-        "& .MuiBackdrop-root": {
-          outline: "none !important",
-        },
-      }}
-    >
+  const currentReq = req || activeReq;
+
+  if (!currentReq) return null;
+
+  const st = statusMap[currentReq.status as keyof typeof statusMap];
+
+  const content = (
+    <Box sx={{ display: "flex", flexDirection: "column", maxHeight: isMobile ? "90vh" : "85vh" }}>
       <Box
         sx={{
           display: { xs: "flex", sm: "none" },
@@ -177,7 +127,7 @@ export default function QuoteModal({
             color: "text.primary",
           }}
         >
-          {req.quotesAvailable ? "Available Quotes" : "Requirement Details"}
+          {currentReq.quotesAvailable ? "Available Quotes" : "Requirement Details"}
         </Typography>
         <IconButton
           onClick={onClose}
@@ -188,12 +138,6 @@ export default function QuoteModal({
             color: "text.secondary",
             "&:hover": {
               bgcolor: "surface.secondary",
-            },
-            "&:focus": {
-              outline: "none !important",
-            },
-            "&:focus-visible": {
-              outline: "none !important",
             },
           }}
         >
@@ -229,7 +173,7 @@ export default function QuoteModal({
                 mb: 0.5,
               }}
             >
-              {req.id}
+              {currentReq.id}
             </Typography>
             <Typography
               sx={{
@@ -238,7 +182,7 @@ export default function QuoteModal({
                 color: "text.primary",
               }}
             >
-              {req.type}
+              {currentReq.type}
             </Typography>
           </Box>
           <Chip
@@ -262,33 +206,33 @@ export default function QuoteModal({
 
         <Box sx={{ mb: 2 }}>
           <SectionTitle>Requirement Details</SectionTitle>
-          <DetailRow label="For Member" value={req.member} />
-          <DetailRow label="Coverage Required" value={req.coverage} />
-          <DetailRow label="Advisor" value={req.advisor} />
-          <DetailRow label="Submitted On" value={req.date} />
+          <DetailRow label="For Member" value={currentReq.member} />
+          <DetailRow label="Coverage Required" value={currentReq.coverage} />
+          <DetailRow label="Advisor" value={currentReq.advisor} />
+          <DetailRow label="Submitted On" value={currentReq.date} />
         </Box>
 
-        {req.quotesAvailable ? (
+        {currentReq.quotesAvailable ? (
           <Box>
             <SectionTitle>
-              {`Available Quotes (${req.quotesAvailable})`}
+              {`Available Quotes (${currentReq.quotesAvailable})`}
             </SectionTitle>
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
               {[
                 {
                   insurer: "HDFC ERGO",
                   premium: "₹12,000",
-                  coverage: req.coverage,
+                  coverage: currentReq.coverage,
                 },
                 {
                   insurer: "Star Health",
                   premium: "₹14,500",
-                  coverage: req.coverage,
+                  coverage: currentReq.coverage,
                 },
                 {
                   insurer: "Niva Bupa",
                   premium: "₹16,200",
-                  coverage: req.coverage,
+                  coverage: currentReq.coverage,
                 },
               ].map((quote, idx) => (
                 <Box
@@ -414,17 +358,47 @@ export default function QuoteModal({
               borderColor: "border.light",
               bgcolor: "surface.secondary",
             },
-            "&:focus": {
-              outline: "none !important",
-            },
-            "&:focus-visible": {
-              outline: "none !important",
-            },
           }}
         >
           Close
         </Button>
       </Box>
+    </Box>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer
+        anchor="bottom"
+        open={open}
+        onClose={onClose}
+        sx={{ zIndex: (theme) => theme.zIndex.modal + 20 }}
+        slotProps={{
+          paper: {
+            sx: { borderRadius: "16px 16px 0 0" },
+          },
+        }}
+      >
+        {content}
+      </Drawer>
+    );
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: "12px",
+            maxWidth: "440px",
+          },
+        },
+      }}
+    >
     </Dialog>
   );
 }

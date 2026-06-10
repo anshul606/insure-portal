@@ -1,9 +1,13 @@
+import { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Chip from "@mui/material/Chip";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
+import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 import { Download, X } from "lucide-react";
 import { type ReactNode } from "react";
 import { type PolicyData } from "./PolicyCard";
@@ -78,82 +82,22 @@ type Props = {
 };
 
 export default function PolicyDetailModal({ open, onClose, policy }: Props) {
-  if (!policy) return null;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [activePolicy, setActivePolicy] = useState<PolicyData | null>(null);
 
-  const st = statusMap[policy.status];
+  useEffect(() => {
+    if (policy) setActivePolicy(policy);
+  }, [policy]);
 
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      fullWidth
-      maxWidth="sm"
-      slotProps={{
-        backdrop: {
-          sx: {
-            bgcolor: "rgba(0,0,0,0.45)",
-          },
-        },
-        paper: {
-          sx: {
-            borderRadius: { xs: "12px 12px 0 0", sm: "12px" },
-            maxWidth: { xs: "100%", sm: "440px" },
-            width: "100%",
-            m: { xs: 0, sm: 2.5 },
-            maxHeight: { xs: "90vh", sm: "85vh" },
-            position: { xs: "fixed", sm: "relative" },
-            bottom: { xs: 0, sm: "auto" },
+  const currentPolicy = policy || activePolicy;
 
-            outline: "none !important",
+  if (!currentPolicy) return null;
 
-            "@keyframes slideUp": {
-              from: {
-                transform: "translateY(100%)",
-                opacity: 0,
-              },
-              to: {
-                transform: "translateY(0)",
-                opacity: 1,
-              },
-            },
-            animation: {
-              xs: "slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-              sm: "none",
-            },
+  const st = statusMap[currentPolicy.status];
 
-            "&:focus-visible": {
-              outline: "none !important",
-            },
-            "&:focus": {
-              outline: "none !important",
-            },
-          },
-        },
-      }}
-      sx={{
-        "& .MuiDialog-container": {
-          alignItems: { xs: "flex-end", sm: "center" },
-
-          "&:focus": {
-            outline: "none !important",
-          },
-        },
-
-        "& .MuiDialog-paper": {
-          outline: "none !important",
-          "&:focus": {
-            outline: "none !important",
-          },
-          "&:focus-visible": {
-            outline: "none !important",
-          },
-        },
-
-        "& .MuiBackdrop-root": {
-          outline: "none !important",
-        },
-      }}
-    >
+  const content = (
+    <Box sx={{ display: "flex", flexDirection: "column", maxHeight: isMobile ? "90vh" : "85vh" }}>
       <Box
         sx={{
           display: { xs: "flex", sm: "none" },
@@ -238,7 +182,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
               width: 48,
               height: 48,
               borderRadius: "10px",
-              bgcolor: policy.iconBg,
+              bgcolor: currentPolicy.iconBg,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -246,7 +190,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
               flexShrink: 0,
             }}
           >
-            {policy.icon}
+            {currentPolicy.icon}
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
@@ -257,7 +201,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
                 mb: 0.5,
               }}
             >
-              {policy.name}
+              {currentPolicy.name}
             </Typography>
             <Typography
               sx={{
@@ -266,7 +210,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
                 fontFamily: "DM Mono, monospace",
               }}
             >
-              {policy.policyNumber}
+              {currentPolicy.policyNumber}
             </Typography>
           </Box>
           <Chip
@@ -290,8 +234,8 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
 
         <Box sx={{ mb: 2 }}>
           <SectionTitle>Policy Information</SectionTitle>
-          <DetailRow label="Insurer" value={policy.insurer} />
-          <DetailRow label="Policy Type" value={policy.type || "—"} />
+          <DetailRow label="Insurer" value={currentPolicy.insurer} />
+          <DetailRow label="Policy Type" value={currentPolicy.type || "—"} />
           <DetailRow
             label="Policy Number"
             value={
@@ -302,7 +246,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
                   fontWeight: 500,
                 }}
               >
-                {policy.policyNumber}
+                {currentPolicy.policyNumber}
               </Typography>
             }
           />
@@ -312,19 +256,19 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
           <SectionTitle>Coverage Details</SectionTitle>
           <DetailRow
             label="Sum Insured"
-            value={policy.sumInsuredFull || policy.coverage}
+            value={currentPolicy.sumInsuredFull || currentPolicy.coverage}
           />
-          <DetailRow label="Annual Premium" value={policy.premium || "—"} />
-          <DetailRow label="Deductible" value={policy.deductible || "N/A"} />
+          <DetailRow label="Annual Premium" value={currentPolicy.premium || "—"} />
+          <DetailRow label="Deductible" value={currentPolicy.deductible || "N/A"} />
           <DetailRow
             label="Covered Members"
-            value={getMemberListText(policy.memberIds)}
+            value={getMemberListText(currentPolicy.memberIds)}
           />
         </Box>
 
         <Box>
           <SectionTitle>Key Dates</SectionTitle>
-          <DetailRow label="Renewal Date" value={policy.renewDate} />
+          <DetailRow label="Renewal Date" value={currentPolicy.renewDate} />
         </Box>
       </Box>
 
@@ -368,7 +312,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
           Close
         </Button>
 
-        {policy.status !== "external" && (
+        {currentPolicy.status !== "external" && (
           <Button
             size="small"
             variant="contained"
@@ -388,12 +332,6 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
                 opacity: 0.9,
                 boxShadow: "none",
               },
-              "&:focus": {
-                outline: "none !important",
-              },
-              "&:focus-visible": {
-                outline: "none !important",
-              },
             }}
             startIcon={<Download size={16} />}
           >
@@ -401,6 +339,43 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
           </Button>
         )}
       </Box>
+    </Box>
+  );
+
+  if (isMobile) {
+    return (
+      <Drawer
+        anchor="bottom"
+        open={open}
+        onClose={onClose}
+        sx={{ zIndex: (theme) => theme.zIndex.modal + 20 }}
+        slotProps={{
+          paper: {
+            sx: { borderRadius: "16px 16px 0 0" },
+          },
+        }}
+      >
+        {content}
+      </Drawer>
+    );
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: "12px",
+            maxWidth: "440px",
+          },
+        },
+      }}
+    >
+      {content}
     </Dialog>
   );
 }

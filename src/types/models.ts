@@ -102,8 +102,23 @@ export type RequirementData = {
   policyId?: string;
 };
 
+export type TicketData = {
+  entityType: "ticket";
+  id: string;
+  ticketNumber: string;
+  subject: string;
+  policyId?: string;
+  policyName?: string;
+  memberId: string;
+  category: string;
+  priority: "Normal" | "High";
+  status: "open" | "in-progress" | "resolved";
+  updatedDate: string;
+};
+
 export type InsuranceEntity =
   | PolicyData
   | ClaimData
   | EndorsementData
-  | RequirementData;
+  | RequirementData
+  | TicketData;

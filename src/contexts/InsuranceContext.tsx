@@ -10,6 +10,7 @@ import type {
   ClaimData,
   EndorsementData,
   RequirementData,
+  TicketData,
   InsuranceEntity,
 } from "../types/models";
 import { api } from "../services/api";
@@ -36,6 +37,12 @@ export const requirementStatusMap = {
   "policy-issued": { label: "Policy Issued", color: "#3B6D11", bg: "#EAF3DE" },
 };
 
+export const ticketStatusMap = {
+  open: { label: "Open", color: "#854F0B", bg: "#FAEEDA" },
+  "in-progress": { label: "In Progress", color: "#1456A0", bg: "#EBF3FC" },
+  resolved: { label: "Resolved", color: "#3B6D11", bg: "#EAF3DE" },
+};
+
 type InsuranceContextType = {
   entities: InsuranceEntity[];
   loading: boolean;
@@ -44,23 +51,28 @@ type InsuranceContextType = {
   claims: ClaimData[];
   endorsements: EndorsementData[];
   requirements: RequirementData[];
+  tickets: TicketData[];
 
   getPoliciesByMember: (memberId: string) => PolicyData[];
   getClaimsByMember: (memberId: string) => ClaimData[];
   getEndorsementsByMember: (memberId: string) => EndorsementData[];
+  getTicketsByMember: (memberId: string) => TicketData[];
 
   getClaimablePolicies: (memberId: string) => PolicyData[];
   getPolicyById: (id: string) => PolicyData | undefined;
   getClaimById: (id: string) => ClaimData | undefined;
   getEndorsementById: (id: string) => EndorsementData | undefined;
+  getTicketById: (id: string) => TicketData | undefined;
 
   getClaimsByPolicyId: (policyId: string) => ClaimData[];
   getEndorsementsByPolicyId: (policyId: string) => EndorsementData[];
+  getTicketsByPolicyId: (policyId: string) => TicketData[];
 
   activePoliciesCount: number;
   expiringPoliciesCount: number;
   pendingClaimsCount: number;
   pendingEndorsementsCount: number;
+  pendingTicketsCount: number;
 };
 
 const InsuranceContext = createContext<InsuranceContextType | undefined>(
@@ -90,6 +102,9 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
   const requirements = entities.filter(
     (e): e is RequirementData => e.entityType === "requirement",
   );
+  const tickets = entities.filter(
+    (e): e is TicketData => e.entityType === "ticket",
+  );
 
   const getPoliciesByMember = (memberId: string): PolicyData[] => {
     if (memberId === "all") return policies;
@@ -106,6 +121,11 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
     return endorsements.filter(
       (endorsement) => endorsement.memberId === memberId,
     );
+  };
+
+  const getTicketsByMember = (memberId: string): TicketData[] => {
+    if (memberId === "all") return tickets;
+    return tickets.filter((ticket) => ticket.memberId === memberId);
   };
 
   const getClaimablePolicies = (memberId: string): PolicyData[] => {
@@ -127,6 +147,10 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
     return endorsements.find((endorsement) => endorsement.id === id);
   };
 
+  const getTicketById = (id: string): TicketData | undefined => {
+    return tickets.find((ticket) => ticket.id === id);
+  };
+
   const getClaimsByPolicyId = (policyId: string): ClaimData[] => {
     return claims.filter((claim) => claim.policyId === policyId);
   };
@@ -135,6 +159,10 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
     return endorsements.filter(
       (endorsement) => endorsement.policyId === policyId,
     );
+  };
+
+  const getTicketsByPolicyId = (policyId: string): TicketData[] => {
+    return tickets.filter((ticket) => ticket.policyId === policyId);
   };
 
   const activePoliciesCount = policies.filter(
@@ -152,6 +180,9 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
   const pendingEndorsementsCount = endorsements.filter(
     (e) => e.status === "pending" || e.status === "in-progress",
   ).length;
+  const pendingTicketsCount = tickets.filter(
+    (t) => t.status === "open" || t.status === "in-progress",
+  ).length;
 
   return (
     <InsuranceContext.Provider
@@ -162,19 +193,24 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
         claims,
         endorsements,
         requirements,
+        tickets,
         getPoliciesByMember,
         getClaimsByMember,
         getEndorsementsByMember,
+        getTicketsByMember,
         getClaimablePolicies,
         getPolicyById,
         getClaimById,
         getEndorsementById,
+        getTicketById,
         getClaimsByPolicyId,
         getEndorsementsByPolicyId,
+        getTicketsByPolicyId,
         activePoliciesCount,
         expiringPoliciesCount,
         pendingClaimsCount,
         pendingEndorsementsCount,
+        pendingTicketsCount,
       }}
     >
       {children}
@@ -229,5 +265,17 @@ export function useRequirement() {
   return {
     requirements: context.requirements,
     loading: context.loading,
+  };
+}
+
+export function useTicket() {
+  const context = useInsurance();
+  return {
+    tickets: context.tickets,
+    loading: context.loading,
+    getTicketsByMember: context.getTicketsByMember,
+    getTicketById: context.getTicketById,
+    getTicketsByPolicyId: context.getTicketsByPolicyId,
+    pendingTicketsCount: context.pendingTicketsCount,
   };
 }

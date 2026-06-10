@@ -5,6 +5,7 @@ import type {
   ClaimData,
   EndorsementData,
   RequirementData,
+  TicketData,
   InsuranceEntity,
 } from "../types/models";
 
@@ -339,6 +340,48 @@ const requirementsList: RequirementData[] = [
   },
 ];
 
+const ticketsList: TicketData[] = [
+  {
+    entityType: "ticket",
+    id: "TKT-2025-0089",
+    ticketNumber: "TKT-2025-0089",
+    subject: "Hospital cashless denied",
+    policyId: "HLT-2024-0001432",
+    policyName: "Health Floater",
+    memberId: "rajesh",
+    category: "Claim assistance",
+    priority: "High",
+    status: "open",
+    updatedDate: "Today",
+  },
+  {
+    entityType: "ticket",
+    id: "TKT-2025-0067",
+    ticketNumber: "TKT-2025-0067",
+    subject: "Wrong address on policy",
+    policyId: "MTR-2024-0887654",
+    policyName: "Car Insurance",
+    memberId: "rajesh",
+    category: "Policy correction",
+    priority: "Normal",
+    status: "in-progress",
+    updatedDate: "Yesterday",
+  },
+  {
+    entityType: "ticket",
+    id: "TKT-2024-0892",
+    ticketNumber: "TKT-2024-0892",
+    subject: "Premium receipt needed",
+    policyId: "LIF-2023-0045231",
+    policyName: "Term Life",
+    memberId: "rajesh",
+    category: "Premium receipt / Tax certificate",
+    priority: "Normal",
+    status: "resolved",
+    updatedDate: "12 Dec 2024",
+  },
+];
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const getMemberDisplayText = (memberIds: string[]): string => {
@@ -387,6 +430,10 @@ export const api = {
     await delay(300);
     return requirementsList;
   },
+  getTickets: async (): Promise<TicketData[]> => {
+    await delay(300);
+    return ticketsList;
+  },
   getInsuranceEntities: async (): Promise<InsuranceEntity[]> => {
     await delay(500);
     return [
@@ -394,6 +441,7 @@ export const api = {
       ...claimsList,
       ...endorsementsList,
       ...requirementsList,
+      ...ticketsList,
     ];
   },
 };
