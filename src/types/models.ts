@@ -116,9 +116,26 @@ export type TicketData = {
   updatedDate: string;
 };
 
+export type VehicleData = {
+  entityType: "vehicle";
+  id: string;
+  name: string;
+  registrationNumber: string;
+  memberId: string;
+  memberName: string;
+  status: "active" | "due" | "upcoming";
+  renewDate: string;
+  icon: string;
+  make: string;
+  model: string;
+  year: string;
+  policyId?: string;
+};
+
 export type InsuranceEntity =
   | PolicyData
   | ClaimData
   | EndorsementData
   | RequirementData
-  | TicketData;
+  | TicketData
+  | VehicleData;

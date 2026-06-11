@@ -10,6 +10,7 @@ import UploadPage from "../pages/Upload.tsx";
 import TicketsPage from "../pages/Tickets.tsx";
 import MembersPage from "../pages/Members.tsx";
 import DocumentsPage from "../pages/Documents.tsx";
+import VehiclesPage from "../pages/Vehicles.tsx";
 import AlertsPage from "../pages/Alerts.tsx";
 import ProfilePage from "../pages/Profile.tsx";
 import NotFoundPage from "../pages/NotFound.tsx";
@@ -50,6 +51,10 @@ export const router = createBrowserRouter([
   {
     path: "/members",
     element: <MembersPage />,
+  },
+  {
+    path: "/vehicles",
+    element: <VehiclesPage />,
   },
   {
     path: "/documents",

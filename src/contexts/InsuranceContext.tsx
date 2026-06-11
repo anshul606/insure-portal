@@ -11,6 +11,7 @@ import type {
   EndorsementData,
   RequirementData,
   TicketData,
+  VehicleData,
   InsuranceEntity,
 } from "../types/models";
 import { api } from "../services/api";
@@ -52,12 +53,17 @@ type InsuranceContextType = {
   endorsements: EndorsementData[];
   requirements: RequirementData[];
   tickets: TicketData[];
+  vehicles: VehicleData[];
 
+  searchQuery: string;
   getPoliciesByMember: (memberId: string) => PolicyData[];
   getClaimsByMember: (memberId: string) => ClaimData[];
   getEndorsementsByMember: (memberId: string) => EndorsementData[];
+  getRequirementsByMember: (memberId: string) => RequirementData[];
   getTicketsByMember: (memberId: string) => TicketData[];
+  getVehiclesByMember: (memberId: string) => VehicleData[];
 
+  globalSearch: (query: string) => InsuranceEntity[];
   getClaimablePolicies: (memberId: string) => PolicyData[];
   getPolicyById: (id: string) => PolicyData | undefined;
   getClaimById: (id: string) => ClaimData | undefined;
@@ -82,10 +88,15 @@ const InsuranceContext = createContext<InsuranceContextType | undefined>(
 export function InsuranceProvider({ children }: { children: ReactNode }) {
   const [entities, setEntities] = useState<InsuranceEntity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery] = useState("");
 
   useEffect(() => {
-    api.getInsuranceEntities().then((data) => {
-      setEntities(data);
+    // We only fetch getInsuranceEntities since all entities should be loaded there.
+    // Wait, let's make sure api.getInsuranceEntities() returns vehicles too!
+    // For now, let's load vehicles separately and append to entities, or update getInsuranceEntities in api.tsx.
+    api.getInsuranceEntities().then(async (data) => {
+      const vehiclesData = await api.getVehicles();
+      setEntities([...data, ...vehiclesData]);
       setLoading(false);
     });
   }, []);
@@ -105,6 +116,9 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
   const tickets = entities.filter(
     (e): e is TicketData => e.entityType === "ticket",
   );
+  const vehicles = entities.filter(
+    (e): e is VehicleData => e.entityType === "vehicle",
+  );
 
   const getPoliciesByMember = (memberId: string): PolicyData[] => {
     if (memberId === "all") return policies;
@@ -118,14 +132,27 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
 
   const getEndorsementsByMember = (memberId: string): EndorsementData[] => {
     if (memberId === "all") return endorsements;
-    return endorsements.filter(
-      (endorsement) => endorsement.memberId === memberId,
-    );
+    return endorsements.filter((e) => e.memberId === memberId);
+  };
+
+  const getRequirementsByMember = (memberId: string): RequirementData[] => {
+    if (memberId === "all") return requirements;
+    // RequirementData has 'member', not 'memberId'
+    return requirements.filter((req) => req.member === memberId || req.member === "all");
   };
 
   const getTicketsByMember = (memberId: string): TicketData[] => {
     if (memberId === "all") return tickets;
-    return tickets.filter((ticket) => ticket.memberId === memberId);
+    return tickets.filter((t) => t.memberId === memberId);
+  };
+
+  const getVehiclesByMember = (memberId: string): VehicleData[] => {
+    if (memberId === "all") return vehicles;
+    return vehicles.filter((v) => v.memberId === memberId);
+  };
+
+  const globalSearch = (query: string): InsuranceEntity[] => {
+    return entities.filter((e) => JSON.stringify(e).includes(query));
   };
 
   const getClaimablePolicies = (memberId: string): PolicyData[] => {
@@ -194,10 +221,15 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
         endorsements,
         requirements,
         tickets,
+        vehicles,
+        searchQuery,
         getPoliciesByMember,
         getClaimsByMember,
         getEndorsementsByMember,
+        getRequirementsByMember,
         getTicketsByMember,
+        getVehiclesByMember,
+        globalSearch,
         getClaimablePolicies,
         getPolicyById,
         getClaimById,

@@ -1,17 +1,18 @@
 import { useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Typography from "@mui/material/Typography";
-import Chip from "@mui/material/Chip";
 import { Plus } from "lucide-react";
 
 import Welcome from "../components/Welcome";
 import AppLayout from "../layouts/AppLayout";
-import MembersList from "../components/members/MembersList";
-import MemberForm from "../components/members/MemberForm";
+import VehiclesList from "../components/vehicles/VehiclesList";
+import VehicleForm from "../components/vehicles/VehicleForm";
+import VehicleDetailModal from "../components/vehicles/VehicleDetailModal";
+import type { VehicleData } from "../types/models";
 
-export default function MembersPage() {
+export default function VehiclesPage() {
   const [showForm, setShowForm] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleData | null>(null);
 
   return (
     <AppLayout>
@@ -28,9 +29,8 @@ export default function MembersPage() {
         >
           <Box sx={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
             <Welcome
-              title="Family Members"
-              content="Members under the Sharma Family Group."
-              hideMemberSelector
+              title="Registered Vehicles"
+              content="Manage your cars and two-wheelers linked to your insurance policies."
             />
           </Box>
 
@@ -58,45 +58,25 @@ export default function MembersPage() {
               },
             }}
           >
-            Add Member
+            Add Vehicle
           </Button>
         </Box>
 
-        <Box sx={{ mt: 3, width: "100%" }}>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              mb: 2,
-            }}
-          >
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Typography sx={{ fontSize: 16, fontWeight: 600, color: "text.primary" }}>
-                B2C — Sharma Family Group
-              </Typography>
-              <Chip
-                label="Family"
-                size="small"
-                sx={{
-                  bgcolor: "info.light",
-                  color: "info.main",
-                  fontWeight: 600,
-                  fontSize: 10,
-                  height: 20,
-                }}
-              />
+        <Box sx={{ width: "100%" }}>
+          {showForm && (
+            <Box sx={{ mb: 3, maxWidth: 800 }}>
+              <VehicleForm onCancel={() => setShowForm(false)} />
             </Box>
-          </Box>
+          )}
 
-          {showForm ? (
-            <Box sx={{ maxWidth: 800, mb: 4 }}>
-              <MemberForm onCancel={() => setShowForm(false)} />
-            </Box>
-          ) : null}
-
-          <MembersList />
+          <VehiclesList onViewClick={(vehicle) => setSelectedVehicle(vehicle)} />
         </Box>
+
+        <VehicleDetailModal
+          open={!!selectedVehicle}
+          onClose={() => setSelectedVehicle(null)}
+          vehicle={selectedVehicle}
+        />
       </Box>
     </AppLayout>
   );

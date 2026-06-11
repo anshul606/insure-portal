@@ -15,6 +15,7 @@ import {
   User,
   RefreshCcw,
   LogOut,
+  Car,
 } from "lucide-react";
 
 type NavItemProps = {
@@ -160,6 +161,12 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
             icon={<Users size={18} />}
             label="Members"
             to="/members"
+            onClick={onClose}
+          />
+          <NavItem
+            icon={<Car size={18} />}
+            label="Vehicles"
+            to="/vehicles"
             onClick={onClose}
           />
           <NavItem

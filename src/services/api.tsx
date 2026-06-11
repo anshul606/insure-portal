@@ -6,6 +6,7 @@ import type {
   EndorsementData,
   RequirementData,
   TicketData,
+  VehicleData,
   InsuranceEntity,
 } from "../types/models";
 
@@ -382,6 +383,38 @@ const ticketsList: TicketData[] = [
   },
 ];
 
+export const vehiclesList: VehicleData[] = [
+  {
+    entityType: "vehicle",
+    id: "VEH-2024-001",
+    name: "Maruti Suzuki Swift VXI",
+    registrationNumber: "MH-12-AB-1234",
+    memberId: "rajesh",
+    memberName: "Rajesh Sharma",
+    status: "due",
+    renewDate: "11 May 2025",
+    icon: "🚗",
+    make: "Maruti Suzuki",
+    model: "Swift VXI",
+    year: "2018",
+    policyId: "MTR-2024-0887654",
+  },
+  {
+    entityType: "vehicle",
+    id: "VEH-2024-002",
+    name: "Honda Activa 6G",
+    registrationNumber: "MH-12-CD-5678",
+    memberId: "priya",
+    memberName: "Priya Sharma",
+    status: "active",
+    renewDate: "22 Oct 2025",
+    icon: "🛵",
+    make: "Honda",
+    model: "Activa 6G",
+    year: "2021",
+  },
+];
+
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const getMemberDisplayText = (memberIds: string[]): string => {
@@ -443,5 +476,10 @@ export const api = {
       ...requirementsList,
       ...ticketsList,
     ];
+  },
+
+  getVehicles: async (): Promise<VehicleData[]> => {
+    await delay(600);
+    return vehiclesList;
   },
 };
