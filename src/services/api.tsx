@@ -101,6 +101,11 @@ export const api = {
     return res.data;
   },
 
+  createPolicy: async (data: Partial<PolicyData>): Promise<PolicyData> => {
+    const res = await apiClient.post<PolicyData>("/api/policies", data);
+    return res.data;
+  },
+
   // ── Claims ───────────────────────────────────────────────────
   getClaims: async (params?: ListParams): Promise<ClaimData[]> => {
     const res = await apiClient.get<ClaimData[]>("/api/claims", params);
