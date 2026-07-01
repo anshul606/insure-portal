@@ -1,9 +1,6 @@
 // In dev, Vite proxy forwards /customer-beta/api to target URL
 // In production, use the env-provided URL directly
-const API_HOST = import.meta.env.VITE_API_URL;
-const BASE_URL = import.meta.env.DEV
-  ? "/customer-beta"
-  : (API_HOST ? `${API_HOST}/customer-beta` : "/customer-beta");
+const BASE_URL = "/customer-beta";
 
 export type PaginatedMeta = {
   totalCount: number;
