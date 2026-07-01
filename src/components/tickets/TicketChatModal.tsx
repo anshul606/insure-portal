@@ -31,12 +31,10 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (ticket) {
-      setActiveTicket(ticket);
-    }
+    setActiveTicket(ticket);
   }, [ticket]);
 
-  const currentTicket = ticket || activeTicket;
+  const currentTicket = activeTicket || ticket;
 
   // Auto scroll to bottom when thread changes
   useEffect(() => {
