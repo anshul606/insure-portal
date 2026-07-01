@@ -7,20 +7,33 @@ import { useNavigate } from "react-router-dom";
 import { User, Eye, EyeOff } from "lucide-react";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
+import Alert from "@mui/material/Alert";
+import { api } from "../services/api";
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
-    setTimeout(() => {
+    try {
+      const result = await api.login(username, password);
+      localStorage.setItem("token", result.token);
+      localStorage.setItem("user", JSON.stringify(result.user));
       navigate("/dashboard");
-    }, 600);
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred.");
+      setLoading(false);
+    }
   };
+
 
   return (
     <Box
@@ -77,6 +90,13 @@ export default function LoginPage() {
           Client Login
         </Typography>
 
+        {error && (
+          <Alert severity="error" sx={{ mb: 2, fontSize: 12 }}>
+            {error}
+          </Alert>
+        )}
+
+
         <Box sx={{ mb: 2 }}>
           <Typography sx={{ fontSize: 12, fontWeight: 600, color: "text.secondary", mb: 1 }}>
             Username / Mobile Number
@@ -87,6 +107,8 @@ export default function LoginPage() {
             variant="outlined"
             size="small"
             required
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             slotProps={{
               input: {
                 endAdornment: (
@@ -95,7 +117,6 @@ export default function LoginPage() {
                   </InputAdornment>
                 ),
                 sx: { borderRadius: 2, bgcolor: "background.default" }
-
               }
             }}
           />
@@ -112,6 +133,8 @@ export default function LoginPage() {
             variant="outlined"
             size="small"
             required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             slotProps={{
               input: {
                 endAdornment: (
@@ -122,10 +145,10 @@ export default function LoginPage() {
                   </InputAdornment>
                 ),
                 sx: { borderRadius: 2, bgcolor: "background.default" }
-
               }
             }}
           />
+
         </Box>
 
         <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 3 }}>

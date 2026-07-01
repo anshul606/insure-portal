@@ -5,12 +5,14 @@ import IconButton from "@mui/material/IconButton";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import MenuItem from "@mui/material/MenuItem";
+import Badge from "@mui/material/Badge";
 import Divider from "@mui/material/Divider";
 import { Bell, RefreshCcw, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PopoverMenu from "./PopoverMenu";
 import { useMember } from "../contexts/MemberContext";
+import { useAlert } from "../contexts/InsuranceContext";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -18,6 +20,8 @@ export default function Header() {
   const [profileAnchorEl, setProfileAnchorEl] = useState<null | HTMLElement>(null);
 
   const { members, selectedMemberId, setSelectedMemberId, activeMember } = useMember();
+  const { alerts } = useAlert();
+  const unreadCount = alerts.filter((a) => !a.read).length;
 
   const handleGroupClick = (event: React.MouseEvent<HTMLElement>) => setGroupAnchorEl(event.currentTarget);
   const handleGroupClose = () => setGroupAnchorEl(null);
@@ -106,8 +110,21 @@ export default function Header() {
               <ChevronDown size={14} color="#6B6963" />
             </Box>
 
-            <IconButton size="small" sx={{ color: "text.secondary" }}>
-              <Bell size={20} />
+            <IconButton size="small" sx={{ color: "text.secondary" }} onClick={() => navigate("/alerts")}>
+              <Badge
+                badgeContent={unreadCount}
+                color="error"
+                sx={{
+                  "& .MuiBadge-badge": {
+                    fontSize: 9,
+                    height: 16,
+                    minWidth: 16,
+                    padding: "0 3px",
+                  }
+                }}
+              >
+                <Bell size={20} />
+              </Badge>
             </IconButton>
 
             <Avatar
@@ -132,6 +149,22 @@ export default function Header() {
         <Typography variant="overline" sx={{ px: 1.5, py: 0.5, color: "text.disabled", fontWeight: 600, lineHeight: 1.5 }}>
           Switch Member
         </Typography>
+        <MenuItem
+          onClick={() => selectGroup("all")}
+          sx={{
+            borderRadius: 1.5,
+            fontSize: 13,
+            fontWeight: selectedMemberId === "all" ? 600 : 500,
+            bgcolor: selectedMemberId === "all" ? "rgba(20,86,160,0.08)" : "transparent",
+            color: selectedMemberId === "all" ? "#1456A0" : "text.primary",
+            mb: 0.25,
+            "&:hover": {
+              bgcolor: selectedMemberId === "all" ? "rgba(20,86,160,0.12)" : "action.hover",
+            }
+          }}
+        >
+          All Members
+        </MenuItem>
         {members.map((member) => (
           <MenuItem
             key={member.id}
@@ -162,7 +195,7 @@ export default function Header() {
         <MenuItem onClick={() => { handleProfileClose(); navigate("/profile"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1 }}>Profile settings</MenuItem>
         <MenuItem onClick={() => { handleProfileClose(); navigate("/tickets"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1 }}>Help & Support</MenuItem>
         <Divider sx={{ my: 0.5 }} />
-        <MenuItem onClick={() => { handleProfileClose(); navigate("/"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1, color: "error.main" }}>Logout</MenuItem>
+        <MenuItem onClick={() => { handleProfileClose(); localStorage.removeItem("token"); localStorage.removeItem("user"); navigate("/"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1, color: "error.main" }}>Logout</MenuItem>
       </PopoverMenu>
     </>
   );

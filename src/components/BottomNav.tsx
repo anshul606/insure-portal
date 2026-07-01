@@ -1,7 +1,9 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import Badge from "@mui/material/Badge";
 import { useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Shield, FileText, Bell, Menu } from "lucide-react";
+import { useAlert } from "../contexts/InsuranceContext";
 
 type BottomNavProps = {
   onOpenDrawer: () => void;
@@ -10,6 +12,8 @@ type BottomNavProps = {
 export default function BottomNav({ onOpenDrawer }: BottomNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { alerts } = useAlert();
+  const unreadCount = alerts.filter((a) => !a.read).length;
 
   const navItems = [
     { icon: LayoutDashboard, label: "Home", path: "/dashboard" },
@@ -69,7 +73,24 @@ export default function BottomNav({ onOpenDrawer }: BottomNavProps) {
                 color: isActive ? "#1456A0" : "text.secondary",
               }}
             >
-              <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+              {item.label === "Alerts" ? (
+                <Badge
+                  badgeContent={unreadCount}
+                  color="error"
+                  sx={{
+                    "& .MuiBadge-badge": {
+                      fontSize: 9,
+                      height: 15,
+                      minWidth: 15,
+                      padding: "0 3px",
+                    }
+                  }}
+                >
+                  <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                </Badge>
+              ) : (
+                <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+              )}
             </Box>
             <Typography
               sx={{

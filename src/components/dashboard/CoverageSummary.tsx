@@ -1,12 +1,21 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import LinearProgress from "@mui/material/LinearProgress";
+import type { CoverageRow } from "../../types/models";
 
 type CoverageItemProps = {
   label: string;
   value: string;
   progress: number;
   color: "primary" | "success" | "warning" | "error" | "info";
+};
+
+const categoryColorMap: Record<string, "primary" | "success" | "warning" | "error" | "info"> = {
+  health: "primary",
+  motor: "warning",
+  life: "success",
+  home: "info",
+  travel: "info",
 };
 
 function CoverageItem({ label, value, progress, color }: CoverageItemProps) {
@@ -41,7 +50,13 @@ function CoverageItem({ label, value, progress, color }: CoverageItemProps) {
   );
 }
 
-export default function CoverageSummary() {
+export default function CoverageSummary({
+  coverageSummary,
+  annualPremiumOutgoDisplay,
+}: {
+  coverageSummary: CoverageRow[];
+  annualPremiumOutgoDisplay: string;
+}) {
   return (
     <Box
       sx={{
@@ -63,30 +78,28 @@ export default function CoverageSummary() {
       </Typography>
 
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, flex: 1 }}>
-        <CoverageItem
-          label="Health Insurance"
-          value="₹15L / ₹25L"
-          progress={60}
-          color="primary"
-        />
-        <CoverageItem
-          label="Motor Insurance"
-          value="IDV ₹8.5L"
-          progress={71}
-          color="warning"
-        />
-        <CoverageItem
-          label="Term Life"
-          value="₹1Cr cover"
-          progress={100}
-          color="success"
-        />
-        <CoverageItem
-          label="Home Insurance"
-          value="₹80L cover"
-          progress={100}
-          color="success"
-        />
+        {coverageSummary.length === 0 ? (
+          <Typography sx={{ fontSize: 13, color: "text.secondary", textAlign: "center", mt: 4 }}>
+            No coverage details available.
+          </Typography>
+        ) : (
+          coverageSummary.map((item) => {
+            const color = categoryColorMap[item.category.toLowerCase()] || "primary";
+            const displayValue = item.utilizedDisplay && item.utilizedDisplay !== "—" && item.utilizedDisplay !== "₹0"
+              ? `${item.utilizedDisplay} / ${item.sumInsuredDisplay}`
+              : `${item.sumInsuredDisplay} cover`;
+
+            return (
+              <CoverageItem
+                key={item.category}
+                label={item.label}
+                value={displayValue}
+                progress={item.utilizedPercent}
+                color={color}
+              />
+            );
+          })
+        )}
       </Box>
 
       <Box
@@ -106,7 +119,7 @@ export default function CoverageSummary() {
         <Typography
           sx={{ fontSize: 14, fontWeight: 700, color: "text.primary" }}
         >
-          ₹1,24,500
+          {annualPremiumOutgoDisplay || "—"}
         </Typography>
       </Box>
     </Box>

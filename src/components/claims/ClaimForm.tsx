@@ -7,10 +7,13 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
+import Alert from "@mui/material/Alert";
+import CircularProgress from "@mui/material/CircularProgress";
 import { Paperclip } from "lucide-react";
 import UiCard from "../shared/UiCard";
 import { useMember } from "../../contexts/MemberContext";
-import { usePolicy } from "../../contexts/InsuranceContext";
+import { usePolicy, useClaim } from "../../contexts/InsuranceContext";
+import { api } from "../../services/api";
 
 export default function ClaimForm({
   onCancel,
@@ -21,20 +24,76 @@ export default function ClaimForm({
 }) {
   const { selectedMemberId, members } = useMember();
   const { getClaimablePolicies } = usePolicy();
+  const { refreshClaims } = useClaim();
   const availablePolicies = getClaimablePolicies(selectedMemberId);
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     policy: "",
-    member: "",
-    claimType: "",
+    member: selectedMemberId === "all" ? "" : selectedMemberId,
+    claimType: "cashless",
     amount: "",
-    incidentDate: "",
+    incidentDate: new Date().toISOString().split("T")[0],
     hospital: "",
     description: "",
   });
 
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.policy || !formData.member || !formData.amount) {
+      setError("Please select a policy, member, and enter an amount.");
+      return;
+    }
+
+    const amtNum = parseFloat(formData.amount);
+    if (isNaN(amtNum) || amtNum <= 0) {
+      setError("Claimed amount must be greater than 0.");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    const selectedPolicy = availablePolicies.find((p) => p.id === formData.policy);
+    const selectedMember = members.find((m) => m.id === formData.member);
+
+    const claimTypeLabelMap: Record<string, string> = {
+      cashless: "Hospitalisation — Cashless",
+      reimbursement: "Hospitalisation — Reimbursement",
+      opd: "OPD / Day Care",
+    };
+
+    const newClaim = {
+      policyId: formData.policy,
+      policyName: selectedPolicy?.name || "Insurance Policy",
+      memberId: formData.member,
+      memberName: selectedMember?.name || "Family Member",
+      claimType: claimTypeLabelMap[formData.claimType] || formData.claimType,
+      amount: amtNum,
+      filedDateIso: formData.incidentDate,
+      insurer: selectedPolicy?.insurer || "Insurer",
+      hospital: formData.hospital.trim() || undefined,
+      status: "under-review",
+      step: 0,
+      steps: ["Filed", "Acknowledged", "Review", "Decision", "Settled"],
+    };
+
+    try {
+      await api.createClaim(newClaim);
+      await refreshClaims();
+      onSubmit();
+    } catch (err: any) {
+      console.error("Failed to submit claim:", err);
+      setError(err.message || "Failed to submit claim. Please check your inputs and try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <UiCard sx={{ mb: 2 }}>
+    <UiCard sx={{ mb: 2 }} component="form" onSubmit={handleFormSubmit}>
       <Typography
         sx={{
           fontSize: 13,
@@ -49,6 +108,12 @@ export default function ClaimForm({
         New Claim
       </Typography>
 
+      {error && (
+        <Alert severity="error" sx={{ mb: 2, fontSize: 12 }}>
+          {error}
+        </Alert>
+      )}
+
       <Box
         sx={{
           display: "grid",
@@ -58,7 +123,7 @@ export default function ClaimForm({
         }}
       >
         {/* Policy Select */}
-        <FormControl fullWidth size="small">
+        <FormControl fullWidth size="small" required>
           <InputLabel
             sx={{
               fontSize: 11,
@@ -71,6 +136,7 @@ export default function ClaimForm({
           <Select
             value={formData.policy}
             label="Policy"
+            disabled={saving}
             onChange={(e) =>
               setFormData({ ...formData, policy: e.target.value })
             }
@@ -85,7 +151,7 @@ export default function ClaimForm({
         </FormControl>
 
         {/* Member Select */}
-        <FormControl fullWidth size="small">
+        <FormControl fullWidth size="small" required>
           <InputLabel
             sx={{
               fontSize: 11,
@@ -98,6 +164,7 @@ export default function ClaimForm({
           <Select
             value={formData.member}
             label="Claim for"
+            disabled={saving}
             onChange={(e) =>
               setFormData({ ...formData, member: e.target.value })
             }
@@ -114,7 +181,7 @@ export default function ClaimForm({
         </FormControl>
 
         {/* Claim Type Select */}
-        <FormControl fullWidth size="small">
+        <FormControl fullWidth size="small" required>
           <InputLabel
             sx={{
               fontSize: 11,
@@ -127,6 +194,7 @@ export default function ClaimForm({
           <Select
             value={formData.claimType}
             label="Claim Type"
+            disabled={saving}
             onChange={(e) =>
               setFormData({ ...formData, claimType: e.target.value })
             }
@@ -145,6 +213,8 @@ export default function ClaimForm({
           size="small"
           label="Claimed Amount (₹)"
           type="number"
+          required
+          disabled={saving}
           value={formData.amount}
           onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
           slotProps={{
@@ -163,6 +233,8 @@ export default function ClaimForm({
           size="small"
           label="Date of Incident"
           type="date"
+          required
+          disabled={saving}
           value={formData.incidentDate}
           onChange={(e) =>
             setFormData({ ...formData, incidentDate: e.target.value })
@@ -184,6 +256,7 @@ export default function ClaimForm({
           size="small"
           label="Hospital / Garage"
           placeholder="e.g. Apollo Hospital, Pune"
+          disabled={saving}
           value={formData.hospital}
           onChange={(e) =>
             setFormData({ ...formData, hospital: e.target.value })
@@ -208,6 +281,7 @@ export default function ClaimForm({
         size="small"
         label="Description"
         placeholder="Brief description..."
+        disabled={saving}
         value={formData.description}
         onChange={(e) =>
           setFormData({ ...formData, description: e.target.value })
@@ -263,12 +337,14 @@ export default function ClaimForm({
           gap: 1,
           justifyContent: "flex-end",
           flexWrap: "wrap",
+          alignItems: "center",
         }}
       >
         <Button
           size="small"
           variant="outlined"
           onClick={onCancel}
+          disabled={saving}
           sx={{
             fontSize: 12,
             fontWeight: 500,
@@ -289,7 +365,9 @@ export default function ClaimForm({
         <Button
           size="small"
           variant="contained"
-          onClick={onSubmit}
+          type="submit"
+          disabled={saving}
+          startIcon={saving ? <CircularProgress size={14} color="inherit" /> : null}
           sx={{
             fontSize: 12,
             fontWeight: 500,
@@ -308,7 +386,7 @@ export default function ClaimForm({
             },
           }}
         >
-          Submit Claim
+          {saving ? "Submitting..." : "Submit Claim"}
         </Button>
       </Box>
     </UiCard>

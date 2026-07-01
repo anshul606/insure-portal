@@ -12,29 +12,12 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { useMember } from "../../contexts/MemberContext";
-import { useInsurance } from "../../contexts/InsuranceContext";
-
-function parseCoverage(sumStr: string | undefined): number {
-  if (!sumStr) return 0;
-  return parseInt(sumStr.replace(/[^\d]/g, ""), 10) || 0;
-}
-
-function formatCoverageAmount(amount: number): string {
-  if (amount >= 10000000) {
-    return `₹${(amount / 10000000).toFixed(2).replace(/\.00$/, "")}Cr`;
-  }
-  if (amount >= 100000) {
-    return `₹${(amount / 100000).toFixed(2).replace(/\.00$/, "")}L`;
-  }
-  return `₹${amount.toLocaleString("en-IN")}`;
-}
 
 export default function MembersList() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
   const { members, setSelectedMemberId } = useMember();
-  const { getPoliciesByMember } = useInsurance();
 
   const familyMembers = members.filter((m) => m.id !== "all");
 
@@ -52,25 +35,6 @@ export default function MembersList() {
     return (
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
         {familyMembers.map((member) => {
-          const policies = getPoliciesByMember(member.id);
-          const activePolicies = policies.filter((p) => p.status === "active");
-          const totalCoverage = activePolicies.reduce(
-            (sum, p) => sum + parseCoverage(p.sumInsuredFull),
-            0
-          );
-          
-          let policiesText = "No active policies";
-          if (activePolicies.length > 0) {
-            policiesText = `${activePolicies.length} active polic${
-              activePolicies.length > 1 ? "ies" : "y"
-            }`;
-            if (totalCoverage > 0) {
-              policiesText += ` · ${formatCoverageAmount(totalCoverage)} coverage`;
-            } else if (member.id === "aarav") {
-              policiesText = "Covered under family floater";
-            }
-          }
-
           return (
             <Box
               key={member.id}
@@ -82,7 +46,7 @@ export default function MembersList() {
                 borderColor: "border.main",
               }}
             >
-              <Box sx={{ display: "flex", gap: 1.5 }}>
+              <Box sx={{ gap: 1.5, display: "flex" }}>
                 <Box
                   sx={{
                     width: 44,
@@ -98,7 +62,7 @@ export default function MembersList() {
                     flexShrink: 0,
                   }}
                 >
-                  {member.profile?.initials || member.name.charAt(0)}
+                  {member.initials || member.name.charAt(0)}
                 </Box>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography
@@ -114,9 +78,9 @@ export default function MembersList() {
                     }}
                   >
                     {member.name}
-                    {member.profile?.relationship && (
+                    {member.relationship && (
                       <Chip
-                        label={member.profile.relationship}
+                        label={member.relationship}
                         size="small"
                         sx={{
                           height: 18,
@@ -135,7 +99,7 @@ export default function MembersList() {
                       mb: 0.75,
                     }}
                   >
-                    DOB: {member.profile?.dob?.split(" ")[0]} · PAN: {member.profile?.pan}
+                    DOB: {member.profile?.dobDisplay || "—"} · PAN: {member.profile?.pan || "—"}
                   </Typography>
                   <Typography
                     sx={{
@@ -143,7 +107,7 @@ export default function MembersList() {
                       color: "text.secondary",
                     }}
                   >
-                    {policiesText}
+                    {member.portfolioSummary || "—"}
                   </Typography>
                 </Box>
               </Box>
@@ -219,25 +183,6 @@ export default function MembersList() {
         </TableHead>
         <TableBody>
           {familyMembers.map((member) => {
-            const policies = getPoliciesByMember(member.id);
-            const activePolicies = policies.filter((p) => p.status === "active");
-            const totalCoverage = activePolicies.reduce(
-              (sum, p) => sum + parseCoverage(p.sumInsuredFull),
-              0
-            );
-
-            let policiesText = "No active policies";
-            if (activePolicies.length > 0) {
-              policiesText = `${activePolicies.length} active polic${
-                activePolicies.length > 1 ? "ies" : "y"
-              }`;
-              if (totalCoverage > 0) {
-                policiesText += ` · ${formatCoverageAmount(totalCoverage)} coverage`;
-              } else if (member.id === "aarav") {
-                policiesText = "Covered under family floater";
-              }
-            }
-
             return (
               <TableRow
                 key={member.id}
@@ -259,14 +204,14 @@ export default function MembersList() {
                         fontWeight: 600,
                       }}
                     >
-                      {member.profile?.initials || member.name.charAt(0)}
+                      {member.initials || member.name.charAt(0)}
                     </Box>
                     <Box>
                       <Typography sx={{ fontSize: 14, fontWeight: 600, color: "text.primary", display: "flex", alignItems: "center", gap: 1 }}>
                         {member.name}
-                        {member.profile?.relationship && (
+                        {member.relationship && (
                           <Chip
-                            label={member.profile.relationship}
+                            label={member.relationship}
                             size="small"
                             sx={{ height: 18, fontSize: 10, fontWeight: 500 }}
                           />
@@ -277,7 +222,7 @@ export default function MembersList() {
                 </TableCell>
                 <TableCell>
                   <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
-                    DOB: {member.profile?.dob?.split(" ")[0] || "—"}
+                    DOB: {member.profile?.dobDisplay || "—"}
                   </Typography>
                   <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
                     PAN: {member.profile?.pan || "—"}
@@ -285,7 +230,7 @@ export default function MembersList() {
                 </TableCell>
                 <TableCell>
                   <Typography sx={{ fontSize: 13, color: "text.secondary" }}>
-                    {policiesText}
+                    {member.portfolioSummary || "—"}
                   </Typography>
                 </TableCell>
                 <TableCell align="right">

@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import LoginPage from "../pages/Login.tsx";
 import DashboardPage from "../pages/Dashboard.tsx";
@@ -15,61 +15,130 @@ import AlertsPage from "../pages/Alerts.tsx";
 import ProfilePage from "../pages/Profile.tsx";
 import NotFoundPage from "../pages/NotFound.tsx";
 
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return <Navigate to="/" replace />;
+  }
+  return <>{children}</>;
+}
+
+function PublicRoute({ children }: { children: React.ReactNode }) {
+  const token = localStorage.getItem("token");
+  if (token) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <>{children}</>;
+}
+
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <LoginPage />,
+    element: (
+      <PublicRoute>
+        <LoginPage />
+      </PublicRoute>
+    ),
   },
   {
     path: "/dashboard",
-    element: <DashboardPage />,
+    element: (
+      <ProtectedRoute>
+        <DashboardPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/policies",
-    element: <PoliciesPage />,
+    element: (
+      <ProtectedRoute>
+        <PoliciesPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/claims",
-    element: <ClaimsPage />,
+    element: (
+      <ProtectedRoute>
+        <ClaimsPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/endorsements",
-    element: <EndorsementsPage />,
+    element: (
+      <ProtectedRoute>
+        <EndorsementsPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/requirements",
-    element: <RequirementsPage />,
+    element: (
+      <ProtectedRoute>
+        <RequirementsPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/upload",
-    element: <UploadPage />,
+    element: (
+      <ProtectedRoute>
+        <UploadPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/tickets",
-    element: <TicketsPage />,
+    element: (
+      <ProtectedRoute>
+        <TicketsPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/members",
-    element: <MembersPage />,
+    element: (
+      <ProtectedRoute>
+        <MembersPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/vehicles",
-    element: <VehiclesPage />,
+    element: (
+      <ProtectedRoute>
+        <VehiclesPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/documents",
-    element: <DocumentsPage />,
+    element: (
+      <ProtectedRoute>
+        <DocumentsPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/alerts",
-    element: <AlertsPage />,
+    element: (
+      <ProtectedRoute>
+        <AlertsPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/profile",
-    element: <ProfilePage />,
+    element: (
+      <ProtectedRoute>
+        <ProfilePage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "*",
     element: <NotFoundPage />,
   },
 ]);
+

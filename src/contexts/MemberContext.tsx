@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Member, MemberProfile } from "../types/models";
-import { api } from "../services/api";
+import { api, setCachedMembers } from "../services/api";
 
 type MemberContextType = {
   members: Member[];
@@ -15,6 +15,8 @@ type MemberContextType = {
   setSelectedMemberId: (id: string) => void;
   activeMember: Member | undefined;
   getProfileForMember: (memberId: string) => MemberProfile | undefined;
+  getMemberName: (memberId: string) => string;
+  refreshMembers: () => Promise<void>;
 };
 
 const MemberContext = createContext<MemberContextType | undefined>(undefined);
@@ -24,19 +26,37 @@ export function MemberProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [selectedMemberId, setSelectedMemberId] = useState("all");
 
-  useEffect(() => {
-    api.getMembers().then((data) => {
+  const refreshMembers = async () => {
+    try {
+      const data = await api.getMembers();
       setMembers(data);
-      setLoading(false);
-    });
+      setCachedMembers(data);
+    } catch (err) {
+      console.error("Failed to load members:", err);
+    }
+  };
+
+  useEffect(() => {
+    refreshMembers().finally(() => setLoading(false));
   }, []);
 
-  const activeMember = members.find((m) => m.id === selectedMemberId) ||
-    members[0] || { id: "all", name: "Loading..." };
+  // "all" is a UI concept — there's no "all" member in the API.
+  // activeMember is only meaningful when a specific member is selected.
+  const activeMember =
+    selectedMemberId === "all"
+      ? members[0]
+      : members.find((m) => m.id === selectedMemberId) || members[0];
 
-  const getProfileForMember = (memberId: string): MemberProfile | undefined => {
+  const getProfileForMember = (
+    memberId: string
+  ): MemberProfile | undefined => {
     if (memberId === "all") return undefined;
     return members.find((m) => m.id === memberId)?.profile;
+  };
+
+  const getMemberName = (memberId: string): string => {
+    const member = members.find((m) => m.id === memberId);
+    return member?.name ?? "";
   };
 
   return (
@@ -48,6 +68,8 @@ export function MemberProvider({ children }: { children: ReactNode }) {
         setSelectedMemberId,
         activeMember,
         getProfileForMember,
+        getMemberName,
+        refreshMembers,
       }}
     >
       {children}
@@ -61,3 +83,4 @@ export function useMember() {
     throw new Error("useMember must be used within a MemberProvider");
   return context;
 }
+

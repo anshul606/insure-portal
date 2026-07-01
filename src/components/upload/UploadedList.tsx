@@ -77,10 +77,10 @@ export default function UploadedList() {
                                 {policy.memberIds.join(", ")}
                             </Typography>
                             <Typography sx={{ fontSize: 12, color: "text.primary", fontWeight: 500 }}>
-                                {policy.coverage}
+                                {policy.sumInsuredDisplay || policy.sumInsured}
                             </Typography>
                             <Typography sx={{ fontSize: 12, color: "text.disabled" }}>
-                                {policy.renewDate}
+                                {policy.renewDateDisplay || policy.renewDateIso || "—"}
                             </Typography>
                             <Chip
                                 label="Under Review"
@@ -140,11 +140,11 @@ export default function UploadedList() {
                             }}>
                                 <Box>
                                     <Typography sx={{ fontSize: 10, color: "text.disabled", textTransform: "uppercase" }}>Sum Insured</Typography>
-                                    <Typography sx={{ fontSize: 12, color: "text.primary", fontWeight: 500 }}>{policy.coverage}</Typography>
+                                    <Typography sx={{ fontSize: 12, color: "text.primary", fontWeight: 500 }}>{policy.sumInsuredDisplay || policy.sumInsured}</Typography>
                                 </Box>
                                 <Box>
                                     <Typography sx={{ fontSize: 10, color: "text.disabled", textTransform: "uppercase" }}>Renewal Date</Typography>
-                                    <Typography sx={{ fontSize: 12, color: "text.primary", fontWeight: 500 }}>{policy.renewDate}</Typography>
+                                    <Typography sx={{ fontSize: 12, color: "text.primary", fontWeight: 500 }}>{policy.renewDateDisplay || policy.renewDateIso || "—"}</Typography>
                                 </Box>
                             </Box>
                         </Box>

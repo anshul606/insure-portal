@@ -8,15 +8,9 @@ import PreferencesCard from "../components/profile/PreferencesCard";
 import { useMember } from "../contexts/MemberContext";
 
 export default function ProfilePage() {
-  const { selectedMemberId, getProfileForMember } = useMember();
-  const profile = getProfileForMember(selectedMemberId);
+  const { activeMember } = useMember();
 
-  const { members } = useMember();
-  const displayMemberId = selectedMemberId === "all" ? "rajesh" : selectedMemberId;
-  const memberName =
-    members.find((m) => m.id === displayMemberId)?.name ?? "";
-
-  if (!profile) return null;
+  if (!activeMember) return null;
 
   return (
     <AppLayout>
@@ -41,8 +35,8 @@ export default function ProfilePage() {
             mb: 1.5,
           }}
         >
-          <ProfileCard profile={profile} memberName={memberName} />
-          <KycCard kycItems={profile.kyc} />
+          <ProfileCard member={activeMember} />
+          <KycCard kycItems={activeMember.kyc ?? []} />
         </Box>
 
         <PreferencesCard />
@@ -50,3 +44,4 @@ export default function ProfilePage() {
     </AppLayout>
   );
 }
+

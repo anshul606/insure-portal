@@ -7,10 +7,11 @@ import Welcome from "../components/Welcome";
 import PolicyGrid from "../components/policies/PolicyGrid";
 import { useMember } from "../contexts/MemberContext";
 import { usePolicy } from "../contexts/InsuranceContext";
+import GridSkeleton from "../components/shared/GridSkeleton";
 
 export default function PoliciesPage() {
   const { selectedMemberId } = useMember();
-  const { getPoliciesByMember } = usePolicy();
+  const { getPoliciesByMember, loading } = usePolicy();
 
   const policies = getPoliciesByMember(selectedMemberId);
 
@@ -66,7 +67,11 @@ export default function PoliciesPage() {
           </Button>
         </Box>
 
-        <PolicyGrid policies={policies} />
+        {loading ? (
+          <GridSkeleton />
+        ) : (
+          <PolicyGrid policies={policies} />
+        )}
       </Box>
     </AppLayout>
   );

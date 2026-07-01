@@ -10,6 +10,7 @@ import ClaimsTable from "../components/claims/ClaimsTable";
 import ClaimForm from "../components/claims/ClaimForm";
 import { useMember } from "../contexts/MemberContext";
 import { useClaim } from "../contexts/InsuranceContext";
+import TableSkeleton from "../components/shared/TableSkeleton";
 
 export default function ClaimsPage() {
   const { selectedMemberId } = useMember();
@@ -73,7 +74,7 @@ export default function ClaimsPage() {
         )}
 
         {loading ? (
-          <Typography>Loading claims...</Typography>
+          <TableSkeleton />
         ) : claims.length > 0 ? (
           <ClaimsTable claims={claims} />
         ) : (

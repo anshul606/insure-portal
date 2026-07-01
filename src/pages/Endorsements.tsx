@@ -10,6 +10,7 @@ import EndorsementsTable from "../components/endorsements/EndorsementsTable";
 import EndorsementForm from "../components/endorsements/EndorsementForm";
 import { useMember } from "../contexts/MemberContext";
 import { useEndorsement } from "../contexts/InsuranceContext";
+import TableSkeleton from "../components/shared/TableSkeleton";
 
 export default function EndorsementsPage() {
   const { selectedMemberId } = useMember();
@@ -74,7 +75,7 @@ export default function EndorsementsPage() {
         )}
 
         {loading ? (
-          <Typography>Loading endorsements...</Typography>
+          <TableSkeleton />
         ) : endorsements.length > 0 ? (
           <EndorsementsTable endorsements={endorsements} />
         ) : (

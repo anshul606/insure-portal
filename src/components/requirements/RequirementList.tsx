@@ -115,7 +115,7 @@ export default function RequirementList() {
                 <Typography
                   sx={{ fontSize: 12, color: "text.primary", fontWeight: 500 }}
                 >
-                  {req.coverage}
+                  {req.coverageDisplay || req.coverage}
                 </Typography>
                 <Chip
                   label={st.label}
@@ -135,7 +135,7 @@ export default function RequirementList() {
                   {req.advisor}
                 </Typography>
                 <Typography sx={{ fontSize: 12, color: "text.disabled" }}>
-                  {req.date}
+                  {req.dateDisplay || req.dateIso || "—"}
                 </Typography>
                 <Button
                   size="small"
@@ -194,12 +194,12 @@ export default function RequirementList() {
                         color: "text.primary",
                       }}
                     >
-                      {req.type} — {req.coverage}
+                      {req.type} — {req.coverageDisplay || req.coverage}
                     </Typography>
                     <Typography
                       sx={{ fontSize: 12, color: "text.secondary", mt: 0.5 }}
                     >
-                      {req.member} • Advisor: {req.advisor} • {req.date}
+                      {req.member} • Advisor: {req.advisor} • {req.dateDisplay || req.dateIso || "—"}
                     </Typography>
                   </Box>
                   <Box>
@@ -233,7 +233,7 @@ export default function RequirementList() {
                   <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
                     {req.quotesAvailable
                       ? `${req.quotesAvailable} quotes available`
-                      : `Completed ${req.date.split(" ")[1]} ${req.date.split(" ")[2]}`}
+                      : `Completed ${(req.dateDisplay || req.dateIso || "").split(" ")[1] || ""} ${(req.dateDisplay || req.dateIso || "").split(" ")[2] || ""}`}
                   </Typography>
                   <Button
                     variant={req.quotesAvailable ? "contained" : "outlined"}

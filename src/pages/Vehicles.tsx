@@ -8,11 +8,14 @@ import AppLayout from "../layouts/AppLayout";
 import VehiclesList from "../components/vehicles/VehiclesList";
 import VehicleForm from "../components/vehicles/VehicleForm";
 import VehicleDetailModal from "../components/vehicles/VehicleDetailModal";
+import { useVehicle } from "../contexts/InsuranceContext";
+import TableSkeleton from "../components/shared/TableSkeleton";
 import type { VehicleData } from "../types/models";
 
 export default function VehiclesPage() {
   const [showForm, setShowForm] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleData | null>(null);
+  const { loading } = useVehicle();
 
   return (
     <AppLayout>
@@ -69,7 +72,11 @@ export default function VehiclesPage() {
             </Box>
           )}
 
-          <VehiclesList onViewClick={(vehicle) => setSelectedVehicle(vehicle)} />
+          {loading ? (
+            <TableSkeleton />
+          ) : (
+            <VehiclesList onViewClick={(vehicle) => setSelectedVehicle(vehicle)} />
+          )}
         </Box>
 
         <VehicleDetailModal

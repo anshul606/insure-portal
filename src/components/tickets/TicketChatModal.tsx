@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
@@ -6,11 +6,14 @@ import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import Drawer from "@mui/material/Drawer";
 import Dialog from "@mui/material/Dialog";
+import CircularProgress from "@mui/material/CircularProgress";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { X, Send, Paperclip } from "lucide-react";
-import type { TicketData } from "../../types/models";
+import type { TicketData, ThreadMessage } from "../../types/models";
 import { ticketStatusMap } from "../../contexts/InsuranceContext";
+import { useTicket } from "../../contexts/InsuranceContext";
+import { api } from "../../services/api";
 
 type TicketChatModalProps = {
   open: boolean;
@@ -21,8 +24,11 @@ type TicketChatModalProps = {
 export default function TicketChatModal({ open, onClose, ticket }: TicketChatModalProps) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const { refreshTickets } = useTicket();
   const [message, setMessage] = useState("");
   const [activeTicket, setActiveTicket] = useState<TicketData | null>(null);
+  const [sending, setSending] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (ticket) {
@@ -32,23 +38,69 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
 
   const currentTicket = ticket || activeTicket;
 
+  // Auto scroll to bottom when thread changes
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [currentTicket?.thread]);
+
   if (!currentTicket) return null;
 
-  const st = ticketStatusMap[currentTicket.status as keyof typeof ticketStatusMap];
+  const st = ticketStatusMap[currentTicket.status as keyof typeof ticketStatusMap] || { label: currentTicket.statusDisplay || currentTicket.status, color: "#854F0B", bg: "#FAEEDA" };
+
+  const handleSendReply = async () => {
+    if (!message.trim() || sending) return;
+    const text = message.trim();
+    setMessage(""); // Clear input immediately for premium responsiveness
+    setSending(true);
+
+    const tempMsg: ThreadMessage = {
+      from: "You",
+      fromRole: "customer",
+      timeDisplay: "Just now",
+      message: text
+    };
+
+    const originalTicket = { ...currentTicket };
+
+    // Optimistically append the message
+    setActiveTicket((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        thread: [...(prev.thread || []), tempMsg]
+      };
+    });
+
+    try {
+      await api.replyToTicket(currentTicket.id, text);
+      const latest = await api.getTicketById(currentTicket.id);
+      setActiveTicket(latest);
+      await refreshTickets();
+    } catch (err) {
+      // Revert on error
+      setActiveTicket(originalTicket);
+      setMessage(text); // Restore typed text
+      console.error("Failed to send reply:", err);
+    } finally {
+      setSending(false);
+    }
+  };
 
   const content = (
     <Box sx={{ display: "flex", flexDirection: "column", height: isMobile ? "90vh" : 600 }}>
       {/* Header */}
       <Box sx={{ p: 2, borderBottom: "1px solid", borderColor: "border.main", display: "flex", alignItems: "center", justifyContent: "space-between", bgcolor: "surface.main" }}>
-        <Box>
+        <Box sx={{ minWidth: 0 }}>
           <Typography sx={{ fontSize: 11, fontWeight: 700, color: "text.disabled", mb: 0.5, fontFamily: "monospace" }}>
             {currentTicket.ticketNumber}
           </Typography>
-          <Typography sx={{ fontSize: 16, fontWeight: 600, color: "text.primary" }}>
+          <Typography noWrap sx={{ fontSize: 16, fontWeight: 600, color: "text.primary" }}>
             {currentTicket.subject}
           </Typography>
         </Box>
-        <IconButton onClick={onClose} size="small" sx={{ color: "text.secondary" }}>
+        <IconButton onClick={onClose} size="small" sx={{ color: "text.secondary", ml: 1.5, flexShrink: 0 }}>
           <X size={20} />
         </IconButton>
       </Box>
@@ -61,7 +113,7 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
         </Box>
         <Box>
           <Typography sx={{ fontSize: 11, color: "text.disabled", textTransform: "uppercase" }}>Policy</Typography>
-          <Typography sx={{ fontSize: 13, fontWeight: 500, color: "text.primary" }}>{currentTicket.policyName || "General"}</Typography>
+          <Typography sx={{ fontSize: 13, fontWeight: 500, color: "text.primary" }}>{currentTicket.relatedPolicy || "General"}</Typography>
         </Box>
         <Box>
           <Typography sx={{ fontSize: 11, color: "text.disabled", textTransform: "uppercase" }}>Category</Typography>
@@ -71,39 +123,66 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
 
       {/* Chat Area */}
       <Box sx={{ flex: 1, p: 2, overflowY: "auto", display: "flex", flexDirection: "column", gap: 2, bgcolor: "#F8F9FC" }}>
-        {/* User Message */}
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-          <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1, maxWidth: "85%" }}>
-            <Box sx={{ bgcolor: "primary.main", color: "primary.contrastText", p: 1.5, borderRadius: 2, borderBottomRightRadius: 4 }}>
-              <Typography sx={{ fontSize: 13, lineHeight: 1.4 }}>
-                I need an update on this issue. I uploaded the documents yesterday.
-              </Typography>
-            </Box>
+        {currentTicket.thread && currentTicket.thread.length > 0 ? (
+          currentTicket.thread.map((msg, idx) => {
+            const isCustomer = msg.fromRole === "customer";
+            return (
+              <Box
+                key={idx}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: isCustomer ? "flex-end" : "flex-start",
+                }}
+              >
+                <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1, maxWidth: "85%" }}>
+                  {!isCustomer && (
+                    <Box sx={{ width: 28, height: 28, borderRadius: "50%", bgcolor: "info.light", display: "flex", alignItems: "center", justifyContent: "center", color: "info.main", fontWeight: 600, fontSize: 12, flexShrink: 0 }}>
+                      {msg.from.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
+                    </Box>
+                  )}
+                  <Box
+                    sx={{
+                      bgcolor: isCustomer ? "primary.main" : "surface.main",
+                      color: isCustomer ? "primary.contrastText" : "text.primary",
+                      border: isCustomer ? "none" : "1px solid",
+                      borderColor: isCustomer ? "transparent" : "border.main",
+                      p: 1.5,
+                      borderRadius: 2,
+                      borderBottomRightRadius: isCustomer ? 4 : 8,
+                      borderBottomLeftRadius: isCustomer ? 8 : 4,
+                    }}
+                  >
+                    {!isCustomer && (
+                      <Typography sx={{ fontSize: 11, fontWeight: 600, color: "info.main", mb: 0.5 }}>
+                        {msg.from}
+                      </Typography>
+                    )}
+                    <Typography sx={{ fontSize: 13, lineHeight: 1.4 }}>
+                      {msg.message}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: 10,
+                    color: "text.disabled",
+                    mt: 0.5,
+                    mr: isCustomer ? 1 : 0,
+                    ml: isCustomer ? 0 : 4.5,
+                  }}
+                >
+                  {msg.timeDisplay}
+                </Typography>
+              </Box>
+            );
+          })
+        ) : (
+          <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", opacity: 0.5 }}>
+            <Typography sx={{ fontSize: 13 }}>No messages in this ticket thread yet.</Typography>
           </Box>
-          <Typography sx={{ fontSize: 10, color: "text.disabled", mt: 0.5, mr: 1 }}>
-            Yesterday, 10:30 AM
-          </Typography>
-        </Box>
-
-        {/* Advisor Message */}
-        <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
-          <Box sx={{ display: "flex", alignItems: "flex-end", gap: 1, maxWidth: "85%" }}>
-            <Box sx={{ width: 28, height: 28, borderRadius: "50%", bgcolor: "info.light", display: "flex", alignItems: "center", justifyContent: "center", color: "info.main", fontWeight: 600, fontSize: 12, flexShrink: 0 }}>
-              AM
-            </Box>
-            <Box sx={{ bgcolor: "surface.main", border: "1px solid", borderColor: "border.main", p: 1.5, borderRadius: 2, borderBottomLeftRadius: 4 }}>
-              <Typography sx={{ fontSize: 11, fontWeight: 600, color: "info.main", mb: 0.5 }}>
-                Arjun Mehta (Advisor)
-              </Typography>
-              <Typography sx={{ fontSize: 13, color: "text.primary", lineHeight: 1.4 }}>
-                Hello, I have reviewed the documents. We have forwarded them to the insurer and are awaiting final confirmation. I will update you by tomorrow noon.
-              </Typography>
-            </Box>
-          </Box>
-          <Typography sx={{ fontSize: 10, color: "text.disabled", mt: 0.5, ml: 4.5 }}>
-            Today, 09:15 AM
-          </Typography>
-        </Box>
+        )}
+        <div ref={chatEndRef} />
       </Box>
 
       {/* Input Area */}
@@ -115,12 +194,19 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
             variant="outlined"
             size="small"
             value={message}
+            disabled={sending}
             onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                handleSendReply();
+              }
+            }}
             slotProps={{
               input: {
                 startAdornment: (
                   <InputAdornment position="start">
-                    <IconButton size="small" sx={{ color: "text.disabled" }}>
+                    <IconButton size="small" sx={{ color: "text.disabled" }} disabled={sending}>
                       <Paperclip size={18} />
                     </IconButton>
                   </InputAdornment>
@@ -131,14 +217,10 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
                       size="small" 
                       color="primary" 
                       sx={{ bgcolor: message.trim() ? "primary.main" : "transparent", color: message.trim() ? "white" : "primary.main", "&:hover": { bgcolor: "primary.dark", color: "white" } }}
-                      onClick={() => {
-                          if(message.trim()) {
-                              alert("Message sent!");
-                              setMessage("");
-                          }
-                      }}
+                      onClick={handleSendReply}
+                      disabled={!message.trim() || sending}
                     >
-                      <Send size={16} />
+                      {sending ? <CircularProgress size={14} color="inherit" /> : <Send size={16} />}
                     </IconButton>
                   </InputAdornment>
                 ),

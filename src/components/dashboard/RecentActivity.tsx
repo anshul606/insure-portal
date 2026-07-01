@@ -1,5 +1,6 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import type { ActivityItem } from "../../types/models";
 
 type TimelineItemProps = {
   title: string;
@@ -7,6 +8,13 @@ type TimelineItemProps = {
   time: string;
   dotColor: string;
   isLast?: boolean;
+};
+
+const kindColorMap: Record<string, string> = {
+  success: "success.main",
+  warn: "warning.main",
+  danger: "error.main",
+  info: "info.main",
 };
 
 function TimelineItem({
@@ -74,7 +82,11 @@ function TimelineItem({
   );
 }
 
-export default function RecentActivity() {
+export default function RecentActivity({
+  recentActivity,
+}: {
+  recentActivity: ActivityItem[];
+}) {
   return (
     <Box
       sx={{
@@ -94,31 +106,25 @@ export default function RecentActivity() {
       </Typography>
 
       <Box>
-        <TimelineItem
-          title="Health claim approved — ₹45,200"
-          subtitle="CL-2024-0892 · Rajesh Sharma"
-          time="2h ago"
-          dotColor="success.main"
-        />
-        <TimelineItem
-          title="Document requested for claim"
-          subtitle="CL-2025-0124 · Discharge summary needed"
-          time="Yesterday"
-          dotColor="warning.main"
-        />
-        <TimelineItem
-          title="Car insurance renewal reminder"
-          subtitle="MTR-2024-0887654 · Due in 12 days"
-          time="2d ago"
-          dotColor="error.main"
-        />
-        <TimelineItem
-          title="Policy certificate downloaded"
-          subtitle="Health Floater — HLT-2024-0001432"
-          time="5d ago"
-          dotColor="text.disabled"
-          isLast
-        />
+        {recentActivity.length === 0 ? (
+          <Typography sx={{ fontSize: 13, color: "text.secondary", textAlign: "center", mt: 4 }}>
+            No recent activity.
+          </Typography>
+        ) : (
+          recentActivity.map((item, idx) => {
+            const dotColor = kindColorMap[item.kind.toLowerCase()] || "text.disabled";
+            return (
+              <TimelineItem
+                key={`${item.title}-${idx}`}
+                title={item.title}
+                subtitle={item.subtitle}
+                time={item.timeDisplay}
+                dotColor={dotColor}
+                isLast={idx === recentActivity.length - 1}
+              />
+            );
+          })
+        )}
       </Box>
     </Box>
   );

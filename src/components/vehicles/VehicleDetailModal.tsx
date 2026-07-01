@@ -27,6 +27,9 @@ export default function VehicleDetailModal({
   if (!vehicle) return null;
 
   const policy = vehicle.policyId ? getPolicyById(vehicle.policyId) : null;
+  const [make = "—", ...modelParts] = (vehicle.makeModel || "").split(" ");
+  const model = modelParts.length > 0 ? modelParts.join(" ") : "—";
+  const iconEmoji = vehicle.vehicleType === "two-wheeler" ? "🏍️" : "🚗";
 
   const content = (
     <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
@@ -53,11 +56,11 @@ export default function VehicleDetailModal({
               fontSize: 24,
             }}
           >
-            {vehicle.icon}
+            {iconEmoji}
           </Box>
           <Box>
             <Typography sx={{ fontSize: 16, fontWeight: 700, color: "text.primary" }}>
-              {vehicle.name}
+              {vehicle.makeModel}
             </Typography>
             <Typography sx={{ fontSize: 14, color: "text.secondary", fontFamily: "DM Mono, monospace" }}>
               {vehicle.registrationNumber}
@@ -80,19 +83,19 @@ export default function VehicleDetailModal({
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Make</Typography>
-                <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{vehicle.make}</Typography>
+                <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{make}</Typography>
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Model</Typography>
-                <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{vehicle.model}</Typography>
+                <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{model}</Typography>
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Mfg. Year</Typography>
-                <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{vehicle.year}</Typography>
+                <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>—</Typography>
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                 <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Owner Name</Typography>
-                <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{vehicle.memberName}</Typography>
+                <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{vehicle.ownerName}</Typography>
               </Box>
             </Box>
           </Box>
@@ -109,7 +112,7 @@ export default function VehicleDetailModal({
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                   <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Policy Type</Typography>
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{policy.type}</Typography>
+                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{policy.type || "Motor Insurance"}</Typography>
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                   <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Policy Number</Typography>
@@ -117,15 +120,15 @@ export default function VehicleDetailModal({
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                   <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Cover Amount</Typography>
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{policy.sumInsuredFull}</Typography>
+                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{policy.sumInsuredDisplay || `₹${policy.sumInsured.toLocaleString("en-IN")}`}</Typography>
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                   <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Annual Premium</Typography>
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{policy.premium}</Typography>
+                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{policy.premiumDisplay || `₹${policy.premiumAnnual.toLocaleString("en-IN")}`}</Typography>
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                   <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Deductible</Typography>
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{policy.deductible}</Typography>
+                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{policy.deductibleDisplay || "—"}</Typography>
                 </Box>
               </Box>
             ) : (
@@ -158,10 +161,10 @@ export default function VehicleDetailModal({
                     Motor Insurance
                   </Typography>
                 </Box>
-                {vehicle.status === "active" ? (
+                {vehicle.status === "active" || vehicle.status === "insured" ? (
                   <Chip label="Active" size="small" sx={{ bgcolor: "#EAF3DE", color: "#3B6D11", fontWeight: 600, fontSize: 11 }} />
                 ) : (
-                  <Chip label={`Renews ${vehicle.renewDate}`} size="small" sx={{ bgcolor: "#FAEEDA", color: "#854F0B", fontWeight: 600, fontSize: 11 }} />
+                  <Chip label={`Renews ${vehicle.renewDateDisplay || vehicle.renewDateIso || "—"}`} size="small" sx={{ bgcolor: "#FAEEDA", color: "#854F0B", fontWeight: 600, fontSize: 11 }} />
                 )}
               </Box>
               {vehicle.policyId && (

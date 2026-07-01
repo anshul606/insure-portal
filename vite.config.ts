@@ -1,12 +1,23 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
-export default defineConfig({
-  server: {
-    host: true,
-    allowedHosts: true,
-  },
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const targetUrl = env.VITE_API_URL || "https://portal.leadcrm.in:82";
+
+  return {
+    server: {
+      host: true,
+      allowedHosts: true,
+      proxy: {
+        "/customer-beta/api": {
+          target: targetUrl,
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+    },
   preview: {
     host: true,
     allowedHosts: true,
@@ -57,4 +68,5 @@ export default defineConfig({
       },
     }),
   ],
+  };
 });

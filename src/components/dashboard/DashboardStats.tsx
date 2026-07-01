@@ -1,7 +1,8 @@
 import Box from "@mui/material/Box";
 import UiCard from "../shared/UiCard";
 import Typography from "@mui/material/Typography";
-import { usePolicy } from "../../contexts/InsuranceContext";
+import type { StatBlock } from "../../types/models";
+import { useMember } from "../../contexts/MemberContext";
 
 type StatProps = {
   title: string;
@@ -56,8 +57,16 @@ function StatCard({ title, value, text }: StatProps) {
   );
 }
 
-export default function DashboardStats() {
-  const { activePoliciesCount, expiringPoliciesCount } = usePolicy();
+export default function DashboardStats({ stats }: { stats: StatBlock }) {
+  const { selectedMemberId, members } = useMember();
+
+  let membersText = "Across family group";
+  if (selectedMemberId !== "all") {
+    membersText = "For active profile";
+  } else if (members.length > 0) {
+    const familyMembersCount = members.filter((m) => m.id !== "all").length;
+    membersText = `Across ${familyMembersCount} member${familyMembersCount > 1 ? "s" : ""}`;
+  }
 
   return (
     <UiCard
@@ -73,14 +82,22 @@ export default function DashboardStats() {
     >
       <StatCard
         title="Policies"
-        value={activePoliciesCount.toString()}
-        text="Across 3 members"
+        value={stats.activePolicies.toString()}
+        text={membersText}
       />
-      <StatCard title="Coverage" value="₹1.5 Cr" text="Combined coverage" />
-      <StatCard title="Claims" value="2" text="₹1.48L pending" />
+      <StatCard 
+        title="Coverage" 
+        value={stats.sumInsuredDisplay || "—"} 
+        text="Combined coverage" 
+      />
+      <StatCard 
+        title="Claims" 
+        value={stats.openClaims.toString()} 
+        text={stats.openClaimsAmount > 0 ? `${stats.openClaimsAmountDisplay} pending` : "No pending claims"} 
+      />
       <StatCard
         title="Alerts"
-        value={expiringPoliciesCount.toString()}
+        value={stats.renewalsDue.toString()}
         text="Next 30 days"
       />
     </UiCard>

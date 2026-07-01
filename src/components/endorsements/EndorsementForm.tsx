@@ -7,9 +7,12 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
+import Alert from "@mui/material/Alert";
+import CircularProgress from "@mui/material/CircularProgress";
 import UiCard from "../shared/UiCard";
 import { useMember } from "../../contexts/MemberContext";
-import { usePolicy } from "../../contexts/InsuranceContext";
+import { usePolicy, useEndorsement } from "../../contexts/InsuranceContext";
+import { api } from "../../services/api";
 
 export default function EndorsementForm({
   onCancel,
@@ -20,17 +23,71 @@ export default function EndorsementForm({
 }) {
   const { selectedMemberId, members } = useMember();
   const { getClaimablePolicies } = usePolicy();
+  const { refreshEndorsements } = useEndorsement();
   const availablePolicies = getClaimablePolicies(selectedMemberId);
+
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     policy: "",
-    member: "",
-    type: "",
+    member: selectedMemberId === "all" ? "" : selectedMemberId,
+    type: "address-change",
     description: "",
   });
 
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.policy || !formData.member || !formData.type) {
+      setError("Please select a policy, member, and endorsement type.");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    const selectedPolicy = availablePolicies.find((p) => p.id === formData.policy);
+    const selectedMember = members.find((m) => m.id === formData.member);
+
+    const typeLabelMap: Record<string, string> = {
+      "add-member": "Add / Remove Member",
+      "address-change": "Address Change",
+      "name-correction": "Name Correction",
+      "sum-insured-upgrade": "Sum Insured Upgrade",
+      "nominee-change": "Nominee Change",
+      other: "Other",
+    };
+
+    const newEndorsement = {
+      policyId: formData.policy,
+      policyName: selectedPolicy?.name || "Insurance Policy",
+      memberId: formData.member,
+      memberName: selectedMember?.name || "Family Member",
+      type: typeLabelMap[formData.type] || formData.type,
+      description: formData.description.trim() || undefined,
+      requestedDateIso: new Date().toISOString().split("T")[0],
+      status: "pending",
+      timeline: [
+        { label: "Request submitted", state: "done" },
+        { label: "Under review by insurer", state: "current" },
+        { label: "Completed", state: "pending" }
+      ],
+    };
+
+    try {
+      await api.createEndorsement(newEndorsement);
+      await refreshEndorsements();
+      onSubmit();
+    } catch (err: any) {
+      console.error("Failed to submit endorsement request:", err);
+      setError(err.message || "Failed to submit request. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <UiCard sx={{ mb: 2 }}>
+    <UiCard sx={{ mb: 2 }} component="form" onSubmit={handleFormSubmit}>
       <Typography
         sx={{
           fontSize: 13,
@@ -45,6 +102,12 @@ export default function EndorsementForm({
         New Endorsement Request
       </Typography>
 
+      {error && (
+        <Alert severity="error" sx={{ mb: 2, fontSize: 12 }}>
+          {error}
+        </Alert>
+      )}
+
       <Box
         sx={{
           display: "grid",
@@ -53,7 +116,8 @@ export default function EndorsementForm({
           mb: 1.5,
         }}
       >
-        <FormControl fullWidth size="small">
+        {/* Policy Select */}
+        <FormControl fullWidth size="small" required>
           <InputLabel
             sx={{
               fontSize: 11,
@@ -66,6 +130,7 @@ export default function EndorsementForm({
           <Select
             value={formData.policy}
             label="Policy"
+            disabled={saving}
             onChange={(e) =>
               setFormData({ ...formData, policy: e.target.value })
             }
@@ -79,7 +144,8 @@ export default function EndorsementForm({
           </Select>
         </FormControl>
 
-        <FormControl fullWidth size="small">
+        {/* Member Select */}
+        <FormControl fullWidth size="small" required>
           <InputLabel
             sx={{
               fontSize: 11,
@@ -92,6 +158,7 @@ export default function EndorsementForm({
           <Select
             value={formData.member}
             label="Member"
+            disabled={saving}
             onChange={(e) =>
               setFormData({ ...formData, member: e.target.value })
             }
@@ -107,7 +174,8 @@ export default function EndorsementForm({
           </Select>
         </FormControl>
 
-        <FormControl fullWidth size="small">
+        {/* Endorsement Type Select */}
+        <FormControl fullWidth size="small" required>
           <InputLabel
             sx={{
               fontSize: 11,
@@ -120,6 +188,7 @@ export default function EndorsementForm({
           <Select
             value={formData.type}
             label="Endorsement Type"
+            disabled={saving}
             onChange={(e) => setFormData({ ...formData, type: e.target.value })}
             sx={{ fontSize: 14 }}
           >
@@ -139,7 +208,9 @@ export default function EndorsementForm({
         rows={3}
         size="small"
         label="Details"
+        required
         placeholder="Describe the endorsement you need..."
+        disabled={saving}
         value={formData.description}
         onChange={(e) =>
           setFormData({ ...formData, description: e.target.value })
@@ -163,12 +234,14 @@ export default function EndorsementForm({
           gap: 1,
           justifyContent: "flex-end",
           flexWrap: "wrap",
+          alignItems: "center",
         }}
       >
         <Button
           size="small"
           variant="outlined"
           onClick={onCancel}
+          disabled={saving}
           sx={{
             fontSize: 12,
             fontWeight: 500,
@@ -189,7 +262,9 @@ export default function EndorsementForm({
         <Button
           size="small"
           variant="contained"
-          onClick={onSubmit}
+          type="submit"
+          disabled={saving}
+          startIcon={saving ? <CircularProgress size={14} color="inherit" /> : null}
           sx={{
             fontSize: 12,
             fontWeight: 500,
@@ -208,7 +283,7 @@ export default function EndorsementForm({
             },
           }}
         >
-          Submit Request
+          {saving ? "Submitting..." : "Submit Request"}
         </Button>
       </Box>
     </UiCard>

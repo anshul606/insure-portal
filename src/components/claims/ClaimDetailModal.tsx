@@ -6,21 +6,83 @@ import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
+import Stepper from "@mui/material/Stepper";
+import Step from "@mui/material/Step";
+import StepLabel from "@mui/material/StepLabel";
+import StepConnector, { stepConnectorClasses } from "@mui/material/StepConnector";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { useTheme } from "@mui/material/styles";
-import { Download, X } from "lucide-react";
+import { useTheme, styled } from "@mui/material/styles";
+import { X, Check } from "lucide-react";
 import { type ReactNode } from "react";
-import type { PolicyData } from "../../types/models";
-import { getMemberListText } from "../../services/api";
-import { getIconForCategory } from "../../services/iconUtils";
+import type { ClaimData } from "../../types/models";
+import { claimStatusMap as statusMap } from "../../contexts/InsuranceContext";
 
-const statusMap: Record<string, { label: string; color: string; bg: string }> = {
-  active: { label: "Active", color: "#3B6D11", bg: "#EAF3DE" },
-  due: { label: "Expiring Soon", color: "#854F0B", bg: "#FAEEDA" },
-  upcoming: { label: "Upcoming", color: "#1456A0", bg: "#EBF3FC" },
-  external: { label: "External", color: "#6B6963", bg: "#F1EFE8" },
-  expired: { label: "Expired", color: "#A32D2D", bg: "#FCEBEB" },
-};
+// Customized Stepper components
+const QontoConnector = styled(StepConnector)(() => ({
+  [`&.${stepConnectorClasses.alternativeLabel}`]: {
+    top: 10,
+    left: "calc(-50% + 16px)",
+    right: "calc(50% + 16px)",
+  },
+  [`&.${stepConnectorClasses.active}`]: {
+    [`& .${stepConnectorClasses.line}`]: {
+      borderColor: "#1456A0",
+    },
+  },
+  [`&.${stepConnectorClasses.completed}`]: {
+    [`& .${stepConnectorClasses.line}`]: {
+      borderColor: "#3B6D11",
+    },
+  },
+  [`& .${stepConnectorClasses.line}`]: {
+    borderColor: "#E5E5E0",
+    borderTopWidth: 3,
+    borderRadius: 1,
+    transition: "border-color 0.2s ease",
+  },
+}));
+
+const QontoStepIconRoot = styled("div")<{ ownerState: { active?: boolean; completed?: boolean } }>(
+  ({ ownerState }) => ({
+    color: "#D0CFC9",
+    display: "flex",
+    height: 22,
+    alignItems: "center",
+    "& .QontoStepIcon-completedIcon": {
+      color: "#3B6D11",
+      zIndex: 1,
+      fontSize: 18,
+    },
+    "& .QontoStepIcon-circle": {
+      width: 8,
+      height: 8,
+      borderRadius: "50%",
+      backgroundColor: "currentColor",
+    },
+    ...(ownerState.active && {
+      color: "#1456A0",
+      "& .QontoStepIcon-circle": {
+        width: 12,
+        height: 12,
+        boxShadow: "0 0 0 3px rgba(20,86,160,0.2)",
+      },
+    }),
+  }),
+);
+
+function QontoStepIcon(props: { active?: boolean; completed?: boolean; className?: string }) {
+  const { active, completed, className } = props;
+
+  return (
+    <QontoStepIconRoot ownerState={{ active, completed }} className={className}>
+      {completed ? (
+        <Check className="QontoStepIcon-completedIcon" size={16} />
+      ) : (
+        <div className="QontoStepIcon-circle" />
+      )}
+    </QontoStepIconRoot>
+  );
+}
 
 function SectionTitle({ children }: { children: string }) {
   return (
@@ -80,25 +142,23 @@ function DetailRow({ label, value }: { label: string; value: ReactNode }) {
 type Props = {
   open: boolean;
   onClose: () => void;
-  policy: PolicyData | null;
+  claim: ClaimData | null;
 };
 
-export default function PolicyDetailModal({ open, onClose, policy }: Props) {
+export default function ClaimDetailModal({ open, onClose, claim }: Props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [activePolicy, setActivePolicy] = useState<PolicyData | null>(null);
+  const [activeClaim, setActiveClaim] = useState<ClaimData | null>(null);
 
   useEffect(() => {
-    if (policy) setActivePolicy(policy);
-  }, [policy]);
+    if (claim) setActiveClaim(claim);
+  }, [claim]);
 
-  const currentPolicy = policy || activePolicy;
+  const currentClaim = claim || activeClaim;
 
-  if (!currentPolicy) return null;
+  if (!currentClaim) return null;
 
-  const st = statusMap[currentPolicy.status] ?? statusMap.active;
-  const isExternal = currentPolicy.isExternal || currentPolicy.status === "external";
-  const iconConfig = getIconForCategory(currentPolicy.category, currentPolicy.status);
+  const st = statusMap[currentClaim.status] || { label: currentClaim.statusDisplay || currentClaim.status, color: "#1456A0", bg: "#EBF3FC" };
 
   const content = (
     <Box sx={{ display: "flex", flexDirection: "column", maxHeight: isMobile ? "90vh" : "85vh" }}>
@@ -138,7 +198,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
             color: "text.primary",
           }}
         >
-          Policy Details
+          Claim Tracker
         </Typography>
 
         <IconButton
@@ -148,15 +208,8 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
             width: 32,
             height: 32,
             color: "text.secondary",
-            "&:hover": {
-              bgcolor: "surface.secondary",
-            },
-            "&:focus": {
-              outline: "none !important",
-            },
-            "&:focus-visible": {
-              outline: "none !important",
-            },
+            "&:hover": { bgcolor: "surface.secondary" },
+            "&:focus": { outline: "none !important" },
           }}
         >
           <X size={18} />
@@ -186,7 +239,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
               width: 48,
               height: 48,
               borderRadius: "10px",
-              bgcolor: iconConfig.iconBg,
+              bgcolor: "surface.secondary",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -194,7 +247,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
               flexShrink: 0,
             }}
           >
-            {iconConfig.icon}
+            📋
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
@@ -205,7 +258,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
                 mb: 0.5,
               }}
             >
-              {currentPolicy.name}
+              {currentClaim.claimType}
             </Typography>
             <Typography
               sx={{
@@ -214,7 +267,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
                 fontFamily: "DM Mono, monospace",
               }}
             >
-              {currentPolicy.policyNumber}
+              {currentClaim.claimNumber}
             </Typography>
           </Box>
           <Chip
@@ -228,52 +281,60 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
               height: "auto",
               px: 1,
               py: 0.25,
-              "& .MuiChip-label": {
-                px: 0,
-                py: 0,
-              },
             }}
           />
         </Box>
 
         <Box sx={{ mb: 2 }}>
-          <SectionTitle>Policy Information</SectionTitle>
-          <DetailRow label="Insurer" value={currentPolicy.insurer} />
-          <DetailRow label="Policy Type" value={currentPolicy.type || "—"} />
+          <SectionTitle>Claim Information</SectionTitle>
+          <DetailRow label="Policy" value={currentClaim.policyName} />
+          <DetailRow label="Insurer" value={currentClaim.insurer} />
+          <DetailRow label="Member Name" value={currentClaim.memberName} />
           <DetailRow
-            label="Policy Number"
-            value={
-              <Typography
-                sx={{
-                  fontFamily: "DM Mono, monospace",
-                  fontSize: 11,
-                  fontWeight: 500,
-                }}
+            label="Claimed Amount"
+            value={currentClaim.amountDisplay || `₹${currentClaim.amount.toLocaleString("en-IN")}`}
+          />
+          {currentClaim.hospital && (
+            <DetailRow label="Hospital / Provider" value={currentClaim.hospital} />
+          )}
+          <DetailRow label="Date of Incident" value={currentClaim.filedDateDisplay || "—"} />
+        </Box>
+
+        {/* Tracker Stepper UI */}
+        {currentClaim.steps && currentClaim.steps.length > 0 && (
+          <Box sx={{ mt: 2 }}>
+            <SectionTitle>Status Timeline</SectionTitle>
+            <Box sx={{ mt: 1.5, width: "100%", pb: 1 }}>
+              <Stepper
+                alternativeLabel={!isMobile}
+                orientation={isMobile ? "vertical" : "horizontal"}
+                activeStep={currentClaim.step}
+                connector={isMobile ? undefined : <QontoConnector />}
+                sx={{ width: "100%" }}
               >
-                {currentPolicy.policyNumber}
-              </Typography>
-            }
-          />
-        </Box>
-
-        <Box sx={{ mb: 2 }}>
-          <SectionTitle>Coverage Details</SectionTitle>
-          <DetailRow
-            label={currentPolicy.coverageLabel || "Sum Insured"}
-            value={currentPolicy.sumInsuredDisplay || "—"}
-          />
-          <DetailRow label="Annual Premium" value={currentPolicy.premiumDisplay || "—"} />
-          <DetailRow label="Deductible" value={currentPolicy.deductibleDisplay || "N/A"} />
-          <DetailRow
-            label="Covered Members"
-            value={currentPolicy.memberIds?.length ? getMemberListText(currentPolicy.memberIds) : "—"}
-          />
-        </Box>
-
-        <Box>
-          <SectionTitle>Key Dates</SectionTitle>
-          <DetailRow label="Renewal Date" value={currentPolicy.renewDateDisplay || "—"} />
-        </Box>
+                {currentClaim.steps.map((label, idx) => (
+                  <Step key={label}>
+                    <StepLabel
+                      slots={{ stepIcon: QontoStepIcon }}
+                      slotProps={{
+                        label: {
+                          sx: {
+                            fontSize: 11,
+                            fontWeight: idx === currentClaim.step ? 600 : 500,
+                            color: idx === currentClaim.step ? "text.primary" : "text.disabled",
+                            textAlign: isMobile ? "left" : "center",
+                          },
+                        },
+                      }}
+                    >
+                      {label}
+                    </StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+            </Box>
+          </Box>
+        )}
       </Box>
 
       <Box
@@ -291,13 +352,14 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
         <Button
           size="small"
           variant="outlined"
+          fullWidth={isMobile}
           onClick={onClose}
           sx={{
             fontSize: 12,
             fontWeight: 500,
             textTransform: "none",
             minHeight: 36,
-            px: 1.75,
+            px: 2.5,
             py: 1,
             borderColor: "border.light",
             color: "text.secondary",
@@ -305,43 +367,10 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
               borderColor: "border.light",
               bgcolor: "surface.secondary",
             },
-            "&:focus": {
-              outline: "none !important",
-            },
-            "&:focus-visible": {
-              outline: "none !important",
-            },
           }}
         >
           Close
         </Button>
-
-        {!isExternal && (
-          <Button
-            size="small"
-            variant="contained"
-            sx={{
-              fontSize: 12,
-              fontWeight: 500,
-              textTransform: "none",
-              minHeight: 36,
-              px: 1.75,
-              py: 1,
-              bgcolor: "info.light",
-              color: "info.main",
-              boxShadow: "none",
-              border: "1px solid #B5D4F4",
-              "&:hover": {
-                bgcolor: "info.light",
-                opacity: 0.9,
-                boxShadow: "none",
-              },
-            }}
-            startIcon={<Download size={16} />}
-          >
-            Download Certificate
-          </Button>
-        )}
       </Box>
     </Box>
   );

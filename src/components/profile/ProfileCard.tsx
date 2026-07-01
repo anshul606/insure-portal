@@ -4,8 +4,12 @@ import UiCard from "../shared/UiCard";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
+import CircularProgress from "@mui/material/CircularProgress";
+import Alert from "@mui/material/Alert";
 import { Pencil, Lock, Check } from "lucide-react";
-import type { MemberProfile } from "../../types/models";
+import type { Member } from "../../types/models";
+import { api } from "../../services/api";
+import { useMember } from "../../contexts/MemberContext";
 
 const labelSx = {
     fontSize: 12,
@@ -38,41 +42,53 @@ const inputSx = {
     },
 };
 
-export default function ProfileCard({
-    profile,
-    memberName,
-}: {
-    profile: MemberProfile;
-    memberName: string;
-}) {
+export default function ProfileCard({ member }: { member: Member }) {
+    const { refreshMembers } = useMember();
     const [isEditing, setIsEditing] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const profile = member.profile || {};
+    
     const [editData, setEditData] = useState({
-        mobile: profile.mobile,
-        email: profile.email,
-        address: profile.address,
+        mobile: profile.mobile || "",
+        email: profile.email || "",
+        address: profile.address || "",
     });
 
     useEffect(() => {
         setIsEditing(false);
+        setError(null);
         setEditData({
-            mobile: profile.mobile,
-            email: profile.email,
-            address: profile.address,
+            mobile: profile.mobile || "",
+            email: profile.email || "",
+            address: profile.address || "",
         });
-    }, [profile]);
+    }, [member, profile]);
 
-    const handleSave = () => {
-        console.log("Saving profile:", editData);
-        setIsEditing(false);
+    const handleSave = async () => {
+        setSaving(true);
+        setError(null);
+        try {
+            await api.updateMember(member.id, editData);
+            await refreshMembers();
+            setIsEditing(false);
+        } catch (err: any) {
+            console.error("Failed to update profile:", err);
+            setError(err.message || "Failed to update profile. Please try again.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     const handleCancel = () => {
         setEditData({
-            mobile: profile.mobile,
-            email: profile.email,
-            address: profile.address,
+            mobile: profile.mobile || "",
+            email: profile.email || "",
+            address: profile.address || "",
         });
         setIsEditing(false);
+        setError(null);
     };
 
     return (
@@ -104,52 +120,57 @@ export default function ProfileCard({
                         flexShrink: 0,
                     }}
                 >
-                    {profile.initials}
+                    {member.initials || "?"}
                 </Box>
                 <Box>
                     <Typography
                         sx={{ fontSize: 15, fontWeight: 600, color: "text.primary" }}
                     >
-                        {memberName}
+                        {member.name}
                     </Typography>
                     <Typography
                         sx={{ fontSize: 11, color: "text.disabled", mt: 0.25 }}
                     >
-                        {profile.relationship} · {profile.clientId} · Since{" "}
-                        {profile.since}
+                        {member.relationship} · {member.clientId} · Since {member.since}
                     </Typography>
                 </Box>
             </Box>
+
+            {error && (
+                <Alert severity="error" sx={{ mb: 2, fontSize: 11, py: 0 }}>
+                    {error}
+                </Alert>
+            )}
 
             {!isEditing && (
                 <Box>
                     <Box sx={rowSx}>
                         <Typography sx={labelSx}>Mobile</Typography>
-                        <Typography sx={valueSx}>{profile.mobile}</Typography>
+                        <Typography sx={valueSx}>{profile.mobile || "—"}</Typography>
                     </Box>
                     <Box sx={rowSx}>
                         <Typography sx={labelSx}>Email</Typography>
-                        <Typography sx={valueSx}>{profile.email}</Typography>
+                        <Typography sx={valueSx}>{profile.email || "—"}</Typography>
                     </Box>
                     <Box sx={rowSx}>
                         <Typography sx={labelSx}>DOB</Typography>
-                        <Typography sx={valueSx}>{profile.dob}</Typography>
+                        <Typography sx={valueSx}>{profile.dobDisplay || "—"}</Typography>
                     </Box>
                     <Box sx={rowSx}>
                         <Typography sx={labelSx}>PAN</Typography>
                         <Typography sx={{ ...valueSx, fontFamily: "monospace" }}>
-                            {profile.pan}
+                            {profile.pan || "—"}
                         </Typography>
                     </Box>
                     <Box sx={rowSx}>
                         <Typography sx={labelSx}>Aadhaar</Typography>
                         <Typography sx={{ ...valueSx, fontFamily: "monospace" }}>
-                            {profile.aadhaar}
+                            {profile.aadhaar || "—"}
                         </Typography>
                     </Box>
                     <Box sx={{ ...rowSx, alignItems: "flex-start" }}>
                         <Typography sx={{ ...labelSx, mt: 0.25 }}>Address</Typography>
-                        <Typography sx={valueSx}>{profile.address}</Typography>
+                        <Typography sx={valueSx}>{profile.address || "—"}</Typography>
                     </Box>
                 </Box>
             )}
@@ -171,6 +192,7 @@ export default function ProfileCard({
                             fullWidth
                             size="small"
                             type="tel"
+                            disabled={saving}
                             value={editData.mobile}
                             onChange={(e) =>
                                 setEditData({ ...editData, mobile: e.target.value })
@@ -193,6 +215,7 @@ export default function ProfileCard({
                             fullWidth
                             size="small"
                             type="email"
+                            disabled={saving}
                             value={editData.email}
                             onChange={(e) =>
                                 setEditData({ ...editData, email: e.target.value })
@@ -216,6 +239,7 @@ export default function ProfileCard({
                             size="small"
                             multiline
                             rows={2}
+                            disabled={saving}
                             value={editData.address}
                             onChange={(e) =>
                                 setEditData({ ...editData, address: e.target.value })
@@ -226,7 +250,7 @@ export default function ProfileCard({
                 </Box>
             )}
 
-            <Box sx={{ mt: 1.75, display: "flex", gap: 1, flexWrap: "wrap" }}>
+            <Box sx={{ mt: 1.75, display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
                 {!isEditing ? (
                     <>
                         <Button
@@ -271,8 +295,9 @@ export default function ProfileCard({
                     <>
                         <Button
                             size="small"
-                            startIcon={<Check size={12} />}
+                            startIcon={saving ? <CircularProgress size={12} color="inherit" /> : <Check size={12} />}
                             onClick={handleSave}
+                            disabled={saving}
                             sx={{
                                 fontSize: 11,
                                 fontWeight: 500,
@@ -287,11 +312,12 @@ export default function ProfileCard({
                                 "&:hover": { bgcolor: "info.light", opacity: 0.9 },
                             }}
                         >
-                            Save Changes
+                            {saving ? "Saving..." : "Save Changes"}
                         </Button>
                         <Button
                             size="small"
                             onClick={handleCancel}
+                            disabled={saving}
                             sx={{
                                 fontSize: 11,
                                 fontWeight: 500,

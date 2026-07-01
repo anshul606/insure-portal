@@ -21,14 +21,19 @@ export default function VehiclesList({ onViewClick }: { onViewClick: (vehicle: V
 
   const vehicles = getVehiclesByMember(selectedMemberId);
 
-  const getStatusColor = (status: VehicleData["status"]) => {
+  const getStatusColor = (status?: string) => {
     switch (status) {
       case "active":
-        return { label: "Active", color: "#3B6D11", bg: "#EAF3DE" };
+      case "insured":
+        return { label: "Insured", color: "#3B6D11", bg: "#EAF3DE" };
       case "due":
-        return { label: "Renews Soon", color: "#854F0B", bg: "#FAEEDA" };
+        return { label: "Renewal Due", color: "#854F0B", bg: "#FAEEDA" };
       case "upcoming":
         return { label: "Upcoming", color: "#1456A0", bg: "#EBF3FC" };
+      case "external":
+        return { label: "External", color: "#6B6963", bg: "#F1EFE8" };
+      default:
+        return { label: status || "Unknown", color: "#6B6963", bg: "#F1EFE8" };
     }
   };
 
@@ -56,6 +61,8 @@ export default function VehiclesList({ onViewClick }: { onViewClick: (vehicle: V
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
         {vehicles.map((veh) => {
           const statusStyle = getStatusColor(veh.status);
+          const iconEmoji = veh.vehicleType === "two-wheeler" ? "🏍️" : "🚗";
+          const renewText = veh.renewDateDisplay || veh.renewDateIso || "—";
           
           return (
             <Box
@@ -89,7 +96,7 @@ export default function VehiclesList({ onViewClick }: { onViewClick: (vehicle: V
                   flexShrink: 0,
                 }}
               >
-                {veh.icon}
+                {iconEmoji}
               </Box>
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography
@@ -101,7 +108,7 @@ export default function VehiclesList({ onViewClick }: { onViewClick: (vehicle: V
                     mb: 0.25,
                   }}
                 >
-                  {veh.name} — {veh.memberName}
+                  {veh.makeModel} — {veh.ownerName}
                 </Typography>
                 <Typography
                   sx={{
@@ -115,7 +122,7 @@ export default function VehiclesList({ onViewClick }: { onViewClick: (vehicle: V
               </Box>
               <Box sx={{ flexShrink: 0 }}>
                 <Chip
-                  label={veh.status === "due" ? `Renews ${veh.renewDate.split(" ").slice(0, 2).join(" ")}` : statusStyle.label}
+                  label={veh.status === "due" ? `Renews ${renewText.split(" ").slice(0, 2).join(" ")}` : statusStyle.label}
                   size="small"
                   sx={{
                     bgcolor: statusStyle.bg,
@@ -160,6 +167,8 @@ export default function VehiclesList({ onViewClick }: { onViewClick: (vehicle: V
         <TableBody>
           {vehicles.map((veh) => {
             const statusStyle = getStatusColor(veh.status);
+            const iconEmoji = veh.vehicleType === "two-wheeler" ? "🏍️" : "🚗";
+            const renewText = veh.renewDateDisplay || veh.renewDateIso || "—";
 
             return (
               <TableRow
@@ -185,14 +194,14 @@ export default function VehiclesList({ onViewClick }: { onViewClick: (vehicle: V
                         fontSize: 18,
                       }}
                     >
-                      {veh.icon}
+                      {iconEmoji}
                     </Box>
                     <Box>
                       <Typography sx={{ fontSize: 14, fontWeight: 600, color: "text.primary" }}>
-                        {veh.name}
+                        {veh.makeModel}
                       </Typography>
                       <Typography sx={{ fontSize: 12, color: "text.secondary" }}>
-                        Owned by {veh.memberName}
+                        Owned by {veh.ownerName}
                       </Typography>
                     </Box>
                   </Box>
@@ -204,7 +213,7 @@ export default function VehiclesList({ onViewClick }: { onViewClick: (vehicle: V
                 </TableCell>
                 <TableCell>
                   <Chip
-                    label={veh.status === "due" ? `Renews ${veh.renewDate}` : statusStyle.label}
+                    label={veh.status === "due" ? `Renews ${renewText}` : statusStyle.label}
                     size="small"
                     sx={{
                       bgcolor: statusStyle.bg,

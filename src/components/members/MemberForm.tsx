@@ -1,12 +1,108 @@
+import { useState } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
+import CircularProgress from "@mui/material/CircularProgress";
+import Alert from "@mui/material/Alert";
+import { api } from "../../services/api";
+import { useMember } from "../../contexts/MemberContext";
 
 export default function MemberForm({ onCancel }: { onCancel: () => void }) {
+  const { refreshMembers } = useMember();
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Form states
+  const [name, setName] = useState("");
+  const [relationship, setRelationship] = useState("Spouse");
+  const [dob, setDob] = useState("");
+  const [gender, setGender] = useState("Male");
+  const [mobile, setMobile] = useState("");
+  const [email, setEmail] = useState("");
+  const [pan, setPan] = useState("");
+  const [aadhaar, setAadhaar] = useState("");
+  const [address, setAddress] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !dob) {
+      setError("Name and Date of Birth are required.");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    // Compute initials (e.g. Rajesh Sharma -> RS)
+    const initials = name
+      .trim()
+      .split(/\s+/)
+      .map((part) => part.charAt(0))
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+
+    // Compute isMinor (under 18)
+    const birthYear = new Date(dob).getFullYear();
+    const currentYear = new Date().getFullYear();
+    const isMinor = currentYear - birthYear < 18;
+
+    // Format current month/year for "since"
+    const monthNames = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+    const today = new Date();
+    const since = `${monthNames[today.getMonth()]} ${today.getFullYear()}`;
+
+    // Generate simulated Client ID
+    const randomNum = Math.floor(10000 + Math.random() * 90000);
+    const clientId = `CLI-${today.getFullYear()}-${randomNum}`;
+
+    // Default KYC items
+    const defaultKyc = [
+      { label: "Aadhaar Card", status: aadhaar ? "verified" : "not-added" },
+      { label: "PAN Card", status: pan ? "verified" : "not-added" },
+      { label: "Photograph", status: "pending" }
+    ];
+
+    const newMember = {
+      name: name.trim(),
+      relationship,
+      initials,
+      clientId,
+      since,
+      gender,
+      isMinor,
+      profile: {
+        mobile: mobile.trim() || "—",
+        email: email.trim() || "—",
+        dobIso: dob,
+        pan: pan.trim().toUpperCase() || "—",
+        aadhaar: aadhaar.trim() || "—",
+        address: address.trim() || "Flat 4B, Sunrise Apts, Baner Road, Pune — 411045", // fallback to group address
+      },
+      kyc: defaultKyc,
+    };
+
+    try {
+      await api.createMember(newMember);
+      await refreshMembers();
+      onCancel();
+    } catch (err: any) {
+      console.error("Failed to add member:", err);
+      setError(err.message || "Failed to save member. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <Box
+      component="form"
+      onSubmit={handleSubmit}
       sx={{
         bgcolor: "background.paper",
         p: { xs: 2.5, md: 3 },
@@ -24,6 +120,12 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
         </Typography>
       </Box>
 
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, fontSize: 13 }}>
+          {error}
+        </Alert>
+      )}
+
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
         <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" } }}>
           <TextField
@@ -32,6 +134,9 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
             fullWidth
             size="small"
             required
+            disabled={saving}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             slotProps={{
               inputLabel: { shrink: true },
               input: {
@@ -45,7 +150,9 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
             fullWidth
             size="small"
             required
-            defaultValue="Spouse"
+            disabled={saving}
+            value={relationship}
+            onChange={(e) => setRelationship(e.target.value)}
             slotProps={{
               inputLabel: { shrink: true },
               input: {
@@ -68,6 +175,9 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
             fullWidth
             size="small"
             required
+            disabled={saving}
+            value={dob}
+            onChange={(e) => setDob(e.target.value)}
             slotProps={{
               inputLabel: { shrink: true },
               input: {
@@ -81,7 +191,9 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
             fullWidth
             size="small"
             required
-            defaultValue="Male"
+            disabled={saving}
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
             slotProps={{
               inputLabel: { shrink: true },
               input: {
@@ -103,6 +215,9 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
             placeholder="e.g. +91 98765 43210"
             fullWidth
             size="small"
+            disabled={saving}
+            value={mobile}
+            onChange={(e) => setMobile(e.target.value)}
             slotProps={{
               inputLabel: { shrink: true },
               input: {
@@ -115,6 +230,9 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
             placeholder="e.g. member@email.com"
             fullWidth
             size="small"
+            disabled={saving}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             slotProps={{
               inputLabel: { shrink: true },
               input: {
@@ -130,6 +248,9 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
             placeholder="e.g. ABCDE1234F"
             fullWidth
             size="small"
+            disabled={saving}
+            value={pan}
+            onChange={(e) => setPan(e.target.value)}
             slotProps={{
               inputLabel: { shrink: true },
               input: {
@@ -142,10 +263,33 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
             placeholder="e.g. 1234 5678 9012"
             fullWidth
             size="small"
+            disabled={saving}
+            value={aadhaar}
+            onChange={(e) => setAadhaar(e.target.value)}
             slotProps={{
               inputLabel: { shrink: true },
               input: {
                 sx: { fontSize: 14, borderRadius: 2, bgcolor: "surface.light", fontFamily: "DM Mono, monospace" },
+              },
+            }}
+          />
+        </Box>
+
+        <Box sx={{ display: "flex", gap: 2, flexDirection: "column" }}>
+          <TextField
+            label="Address"
+            placeholder="e.g. Flat 4B, Sunrise Apts, Baner Road, Pune — 411045"
+            fullWidth
+            size="small"
+            multiline
+            rows={2}
+            disabled={saving}
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            slotProps={{
+              inputLabel: { shrink: true },
+              input: {
+                sx: { fontSize: 14, borderRadius: 2, bgcolor: "surface.light" },
               },
             }}
           />
@@ -165,6 +309,7 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
           <Button
             variant="outlined"
             onClick={onCancel}
+            disabled={saving}
             sx={{
               textTransform: "none",
               borderRadius: 2,
@@ -175,8 +320,14 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
           >
             Cancel
           </Button>
-          <Button variant="contained" sx={{ textTransform: "none", borderRadius: 2, px: 3 }}>
-            Save Member
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={saving}
+            startIcon={saving ? <CircularProgress size={14} color="inherit" /> : null}
+            sx={{ textTransform: "none", borderRadius: 2, px: 3 }}
+          >
+            {saving ? "Saving..." : "Save Member"}
           </Button>
         </Box>
       </Box>

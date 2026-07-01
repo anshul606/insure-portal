@@ -37,25 +37,25 @@ export const theme = createTheme({
     success: {
       main: "#3B6D11",
       light: "#EAF3DE",
-      contrastText: "#3B6D11",
+      contrastText: "#FFFFFF",
     },
 
     warning: {
       main: "#854F0B",
       light: "#FAEEDA",
-      contrastText: "#854F0B",
+      contrastText: "#FFFFFF",
     },
 
     error: {
       main: "#A32D2D",
       light: "#FCEBEB",
-      contrastText: "#A32D2D",
+      contrastText: "#FFFFFF",
     },
 
     info: {
       main: "#1456A0",
       light: "#EBF3FC",
-      contrastText: "#1456A0",
+      contrastText: "#FFFFFF",
     },
 
     background: {

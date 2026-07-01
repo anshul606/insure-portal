@@ -7,9 +7,12 @@ import Welcome from "../components/Welcome";
 import AppLayout from "../layouts/AppLayout";
 import RequirementForm from "../components/requirements/RequirementForm";
 import RequirementList from "../components/requirements/RequirementList";
+import { useRequirement } from "../contexts/InsuranceContext";
+import GridSkeleton from "../components/shared/GridSkeleton";
 
 export default function RequirementsPage() {
   const [showForm, setShowForm] = useState(false);
+  const { loading } = useRequirement();
 
   return (
     <AppLayout>
@@ -66,7 +69,7 @@ export default function RequirementsPage() {
         )}
 
         <Box sx={{ mt: 2 }}>
-          <RequirementList />
+          {loading ? <GridSkeleton /> : <RequirementList />}
         </Box>
       </Box>
     </AppLayout>

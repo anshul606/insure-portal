@@ -6,7 +6,7 @@ import Typography from "@mui/material/Typography";
 import { AlertTriangle } from "lucide-react";
 import type { KycItem } from "../../types/models";
 
-const kycStatusMap = {
+const kycStatusMap: Record<string, { label: string; color: string; bg: string }> = {
     verified: { label: "✓ Verified", color: "#3B6D11", bg: "#EAF3DE" },
     pending: { label: "Pending Review", color: "#854F0B", bg: "#FAEEDA" },
     "not-added": { label: "Not Added", color: "#5F5E5A", bg: "#F1EFE8" },

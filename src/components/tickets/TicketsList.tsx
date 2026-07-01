@@ -67,7 +67,7 @@ export default function TicketsList({ onViewClick }: TicketsListProps) {
             {/* Rows */}
             {tickets.map((tkt, i) => {
                 const st = ticketStatusMap[tkt.status as keyof typeof ticketStatusMap];
-                const isHigh = tkt.priority === "High";
+                const isHigh = tkt.priority.toLowerCase() === "high";
 
                 return (
                     <Box
@@ -98,10 +98,10 @@ export default function TicketsList({ onViewClick }: TicketsListProps) {
                                 {tkt.subject}
                             </Typography>
                             <Typography sx={{ fontSize: 12, color: "text.secondary", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                {tkt.policyName || "—"}
+                                {tkt.relatedPolicy || "—"}
                             </Typography>
                             <Chip
-                                label={tkt.priority}
+                                label={isHigh ? "High" : "Normal"}
                                 size="small"
                                 sx={{
                                     bgcolor: isHigh ? "#FCEBEB" : "surface.secondary",
@@ -131,7 +131,7 @@ export default function TicketsList({ onViewClick }: TicketsListProps) {
                                 }}
                             />
                             <Typography sx={{ fontSize: 12, color: "text.disabled" }}>
-                                {tkt.updatedDate}
+                                {tkt.updatedDisplay || tkt.updatedDateIso || "—"}
                             </Typography>
                             <Button
                                 size="small"
@@ -173,7 +173,7 @@ export default function TicketsList({ onViewClick }: TicketsListProps) {
                                         {tkt.subject}
                                     </Typography>
                                     <Typography sx={{ fontSize: 12, color: "text.secondary", mt: 0.5 }}>
-                                        {tkt.policyName ? `${tkt.policyName} · ` : ""}Updated {tkt.updatedDate.toLowerCase()}
+                                        {tkt.relatedPolicy ? `${tkt.relatedPolicy} · ` : ""}Updated {(tkt.updatedDisplay || tkt.updatedDateIso || "—").toLowerCase()}
                                     </Typography>
                                 </Box>
                                 <Chip

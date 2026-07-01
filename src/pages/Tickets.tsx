@@ -8,11 +8,15 @@ import AppLayout from "../layouts/AppLayout";
 import TicketForm from "../components/tickets/TicketForm";
 import TicketsList from "../components/tickets/TicketsList";
 import TicketChatModal from "../components/tickets/TicketChatModal";
+import FaqSection from "../components/tickets/FaqSection";
+import { useTicket } from "../contexts/InsuranceContext";
+import TableSkeleton from "../components/shared/TableSkeleton";
 import type { TicketData } from "../types/models";
 
 export default function TicketsPage() {
   const [showForm, setShowForm] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null);
+  const { loading } = useTicket();
 
   return (
     <AppLayout>
@@ -70,7 +74,13 @@ export default function TicketsPage() {
                 </Box>
             )}
 
-            <TicketsList onViewClick={(ticket) => setSelectedTicket(ticket)} />
+            {loading ? (
+              <TableSkeleton />
+            ) : (
+              <TicketsList onViewClick={(ticket) => setSelectedTicket(ticket)} />
+            )}
+
+            <FaqSection />
         </Box>
 
         <TicketChatModal 

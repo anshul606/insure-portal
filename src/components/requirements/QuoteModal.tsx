@@ -6,11 +6,13 @@ import Dialog from "@mui/material/Dialog";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
-import { X } from "lucide-react";
+import { X, Check } from "lucide-react";
 import type { RequirementData } from "../../types/models";
 import { requirementStatusMap as statusMap } from "../../contexts/InsuranceContext";
+import { useRequirement } from "../../contexts/InsuranceContext";
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
@@ -77,7 +79,9 @@ export default function QuoteModal({
 }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const { selectQuoteOptimistic } = useRequirement();
   const [activeReq, setActiveReq] = useState<RequirementData | null>(null);
+  const [selectingQuoteId, setSelectingQuoteId] = useState<string | null>(null);
 
   useEffect(() => {
     if (req) setActiveReq(req);
@@ -87,7 +91,19 @@ export default function QuoteModal({
 
   if (!currentReq) return null;
 
-  const st = statusMap[currentReq.status as keyof typeof statusMap];
+  const st = statusMap[currentReq.status as keyof typeof statusMap] || { label: currentReq.statusDisplay || currentReq.status, color: "#854F0B", bg: "#FAEEDA" };
+
+  const handleSelectQuote = async (quoteId: string) => {
+    setSelectingQuoteId(quoteId);
+    try {
+      await selectQuoteOptimistic(currentReq.id, quoteId);
+      onClose();
+    } catch (err) {
+      console.error("Failed to select quote:", err);
+    } finally {
+      setSelectingQuoteId(null);
+    }
+  };
 
   const content = (
     <Box sx={{ display: "flex", flexDirection: "column", maxHeight: isMobile ? "90vh" : "85vh" }}>
@@ -207,106 +223,124 @@ export default function QuoteModal({
         <Box sx={{ mb: 2 }}>
           <SectionTitle>Requirement Details</SectionTitle>
           <DetailRow label="For Member" value={currentReq.member} />
-          <DetailRow label="Coverage Required" value={currentReq.coverage} />
+          <DetailRow label="Coverage Required" value={currentReq.coverageDisplay || currentReq.coverage.toString()} />
           <DetailRow label="Advisor" value={currentReq.advisor} />
-          <DetailRow label="Submitted On" value={currentReq.date} />
+          <DetailRow label="Submitted On" value={currentReq.dateDisplay || currentReq.dateIso || "—"} />
         </Box>
 
-        {currentReq.quotesAvailable ? (
-          <Box>
+        {/* Real Quotes list from API */}
+        {currentReq.quotes && currentReq.quotes.length > 0 ? (
+          <Box sx={{ mt: 2.5 }}>
             <SectionTitle>
-              {`Available Quotes (${currentReq.quotesAvailable})`}
+              {`Available Quotes (${currentReq.quotes.length})`}
             </SectionTitle>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-              {[
-                {
-                  insurer: "HDFC ERGO",
-                  premium: "₹12,000",
-                  coverage: currentReq.coverage,
-                },
-                {
-                  insurer: "Star Health",
-                  premium: "₹14,500",
-                  coverage: currentReq.coverage,
-                },
-                {
-                  insurer: "Niva Bupa",
-                  premium: "₹16,200",
-                  coverage: currentReq.coverage,
-                },
-              ].map((quote, idx) => (
-                <Box
-                  key={idx}
-                  sx={{
-                    bgcolor: "background.paper",
-                    border: "1px solid",
-                    borderColor: "border.main",
-                    borderRadius: 1.5,
-                    p: 1.75,
-                  }}
-                >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mt: 1 }}>
+              {currentReq.quotes.map((quote) => {
+                const isSelected = quote.selected;
+                return (
                   <Box
+                    key={quote.id}
                     sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      mb: 1,
+                      bgcolor: "background.paper",
+                      border: "1px solid",
+                      borderColor: isSelected ? "success.main" : "border.main",
+                      boxShadow: isSelected ? "0 0 0 1px rgba(59,109,17,0.1)" : "none",
+                      borderRadius: 1.5,
+                      p: 1.75,
                     }}
                   >
-                    <Box>
-                      <Typography
-                        sx={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "text.primary",
-                          mb: 0.5,
-                        }}
-                      >
-                        {quote.insurer}
-                      </Typography>
-                      <Typography
-                        sx={{
-                          fontSize: 11,
-                          color: "text.disabled",
-                        }}
-                      >
-                        Coverage: {quote.coverage}
-                      </Typography>
-                    </Box>
-                    <Typography
+                    <Box
                       sx={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: "text.primary",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        mb: 1,
                       }}
                     >
-                      {quote.premium}/year
-                    </Typography>
-                  </Box>
-                  <Button
-                    size="small"
-                    variant="contained"
-                    fullWidth
-                    sx={{
-                      fontSize: 11,
-                      fontWeight: 500,
-                      textTransform: "none",
-                      minHeight: 32,
-                      bgcolor: "info.light",
-                      color: "info.main",
-                      boxShadow: "none",
-                      border: "1px solid #B5D4F4",
-                      "&:hover": {
-                        bgcolor: "info.light",
-                        opacity: 0.9,
+                      <Box sx={{ mr: 1.5 }}>
+                        <Typography
+                          sx={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: "text.primary",
+                            mb: 0.5,
+                          }}
+                        >
+                          {quote.insurer} — {quote.planName}
+                        </Typography>
+                        {quote.features && quote.features.length > 0 && (
+                          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, mt: 0.75 }}>
+                            {quote.features.map((feat, fidx) => (
+                              <Chip
+                                key={fidx}
+                                label={feat.text}
+                                size="small"
+                                sx={{
+                                  fontSize: 9,
+                                  height: 18,
+                                  bgcolor: feat.included ? "success.light" : "surface.secondary",
+                                  color: feat.included ? "#3B6D11" : "text.disabled",
+                                  border: feat.included ? "none" : "1px solid",
+                                  borderColor: "border.main",
+                                }}
+                              />
+                            ))}
+                          </Box>
+                        )}
+                      </Box>
+                      <Typography
+                        sx={{
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: "text.primary",
+                        }}
+                      >
+                        {quote.premiumDisplay || `₹${quote.premiumAnnual.toLocaleString("en-IN")}/year`}
+                      </Typography>
+                    </Box>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      fullWidth
+                      disabled={isSelected || selectingQuoteId === quote.id}
+                      onClick={() => handleSelectQuote(quote.id)}
+                      startIcon={selectingQuoteId === quote.id ? <CircularProgress size={12} color="inherit" /> : isSelected ? <Check size={12} /> : null}
+                      sx={{
+                        fontSize: 11,
+                        fontWeight: 500,
+                        textTransform: "none",
+                        minHeight: 32,
+                        bgcolor: isSelected ? "success.light" : "info.light",
+                        color: isSelected ? "success.main" : "info.main",
                         boxShadow: "none",
-                      },
-                    }}
-                  >
-                    Select This Quote
-                  </Button>
-                </Box>
-              ))}
+                        border: isSelected ? "1px solid #C0DD97" : "1px solid #B5D4F4",
+                        "&:hover": {
+                          bgcolor: isSelected ? "success.light" : "info.light",
+                          opacity: 0.9,
+                          boxShadow: "none",
+                        },
+                      }}
+                    >
+                      {isSelected ? "Selected Plan" : selectingQuoteId === quote.id ? "Selecting..." : "Select This Quote"}
+                    </Button>
+                  </Box>
+                );
+              })}
+            </Box>
+          </Box>
+        ) : currentReq.status === "policy-issued" && currentReq.issuedPolicy ? (
+          /* Issued Policy block */
+          <Box sx={{ mt: 2.5, p: 2, bgcolor: "success.light", borderRadius: 2, border: "1px solid #C0DD97" }}>
+            <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#3B6D11", mb: 1.5, display: "flex", alignItems: "center", gap: 0.5 }}>
+              ✓ Policy Issued Successfully
+            </Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
+              <DetailRow label="Insurer" value={currentReq.issuedPolicy.insurer || "—"} />
+              <DetailRow label="Policy Number" value={currentReq.issuedPolicy.policyNumber || "—"} />
+              <DetailRow label="Sum Assured" value={currentReq.issuedPolicy.sumAssuredDisplay || (currentReq.issuedPolicy.sumAssured ? `₹${currentReq.issuedPolicy.sumAssured.toLocaleString("en-IN")}` : "—")} />
+              <DetailRow label="Annual Premium" value={currentReq.issuedPolicy.premiumDisplay || (currentReq.issuedPolicy.premiumAnnual ? `₹${currentReq.issuedPolicy.premiumAnnual.toLocaleString("en-IN")}` : "—")} />
+              <DetailRow label="Policy Term" value={currentReq.issuedPolicy.policyTerm || "—"} />
+              <DetailRow label="Issued On" value={currentReq.issuedPolicy.issuedOnDisplay || "—"} />
             </Box>
           </Box>
         ) : (
@@ -399,6 +433,7 @@ export default function QuoteModal({
         },
       }}
     >
+      {content}
     </Dialog>
   );
 }

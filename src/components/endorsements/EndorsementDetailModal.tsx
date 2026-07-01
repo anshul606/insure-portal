@@ -6,21 +6,86 @@ import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
+import Stepper from "@mui/material/Stepper";
+import Step from "@mui/material/Step";
+import StepLabel from "@mui/material/StepLabel";
+import StepConnector, { stepConnectorClasses } from "@mui/material/StepConnector";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { useTheme } from "@mui/material/styles";
-import { Download, X } from "lucide-react";
+import { useTheme, styled } from "@mui/material/styles";
+import { X, Check } from "lucide-react";
 import { type ReactNode } from "react";
-import type { PolicyData } from "../../types/models";
-import { getMemberListText } from "../../services/api";
-import { getIconForCategory } from "../../services/iconUtils";
+import type { EndorsementData } from "../../types/models";
+import { endorsementStatusMap as statusMap } from "../../contexts/InsuranceContext";
 
-const statusMap: Record<string, { label: string; color: string; bg: string }> = {
-  active: { label: "Active", color: "#3B6D11", bg: "#EAF3DE" },
-  due: { label: "Expiring Soon", color: "#854F0B", bg: "#FAEEDA" },
-  upcoming: { label: "Upcoming", color: "#1456A0", bg: "#EBF3FC" },
-  external: { label: "External", color: "#6B6963", bg: "#F1EFE8" },
-  expired: { label: "Expired", color: "#A32D2D", bg: "#FCEBEB" },
-};
+// Customized connector for Endorsement timeline
+const EndorsementConnector = styled(StepConnector)(() => ({
+  [`&.${stepConnectorClasses.alternativeLabel}`]: {
+    top: 10,
+    left: "calc(-50% + 16px)",
+    right: "calc(50% + 16px)",
+  },
+  [`&.${stepConnectorClasses.active}`]: {
+    [`& .${stepConnectorClasses.line}`]: {
+      borderColor: "#1456A0",
+    },
+  },
+  [`&.${stepConnectorClasses.completed}`]: {
+    [`& .${stepConnectorClasses.line}`]: {
+      borderColor: "#3B6D11",
+    },
+  },
+  [`& .${stepConnectorClasses.line}`]: {
+    borderColor: "#E5E5E0",
+    borderTopWidth: 3,
+    borderRadius: 1,
+    transition: "border-color 0.2s ease",
+  },
+}));
+
+const EndorsementStepIconRoot = styled("div")<{ ownerState: { state: string } }>(
+  ({ ownerState }) => ({
+    color: "#D0CFC9",
+    display: "flex",
+    height: 22,
+    alignItems: "center",
+    "& .StepIcon-completedIcon": {
+      color: "#3B6D11",
+      zIndex: 1,
+      fontSize: 18,
+    },
+    "& .StepIcon-circle": {
+      width: 8,
+      height: 8,
+      borderRadius: "50%",
+      backgroundColor: "currentColor",
+    },
+    ...(ownerState.state === "current" && {
+      color: "#1456A0",
+      "& .StepIcon-circle": {
+        width: 12,
+        height: 12,
+        boxShadow: "0 0 0 3px rgba(20,86,160,0.2)",
+      },
+    }),
+    ...(ownerState.state === "done" && {
+      color: "#3B6D11",
+    }),
+  }),
+);
+
+function EndorsementStepIcon(props: { active?: boolean; completed?: boolean; iconState: string }) {
+  const { iconState } = props;
+
+  return (
+    <EndorsementStepIconRoot ownerState={{ state: iconState }}>
+      {iconState === "done" ? (
+        <Check className="StepIcon-completedIcon" size={16} />
+      ) : (
+        <div className="StepIcon-circle" />
+      )}
+    </EndorsementStepIconRoot>
+  );
+}
 
 function SectionTitle({ children }: { children: string }) {
   return (
@@ -80,25 +145,26 @@ function DetailRow({ label, value }: { label: string; value: ReactNode }) {
 type Props = {
   open: boolean;
   onClose: () => void;
-  policy: PolicyData | null;
+  endorsement: EndorsementData | null;
 };
 
-export default function PolicyDetailModal({ open, onClose, policy }: Props) {
+export default function EndorsementDetailModal({ open, onClose, endorsement }: Props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [activePolicy, setActivePolicy] = useState<PolicyData | null>(null);
+  const [activeEndorsement, setActiveEndorsement] = useState<EndorsementData | null>(null);
 
   useEffect(() => {
-    if (policy) setActivePolicy(policy);
-  }, [policy]);
+    if (endorsement) setActiveEndorsement(endorsement);
+  }, [endorsement]);
 
-  const currentPolicy = policy || activePolicy;
+  const currentEndorsement = endorsement || activeEndorsement;
 
-  if (!currentPolicy) return null;
+  if (!currentEndorsement) return null;
 
-  const st = statusMap[currentPolicy.status] ?? statusMap.active;
-  const isExternal = currentPolicy.isExternal || currentPolicy.status === "external";
-  const iconConfig = getIconForCategory(currentPolicy.category, currentPolicy.status);
+  const st = statusMap[currentEndorsement.status] || { label: currentEndorsement.statusDisplay || currentEndorsement.status, color: "#1456A0", bg: "#EBF3FC" };
+
+  // Calculate step status fallback index
+  const fallbackActiveStep = currentEndorsement.timeline?.findIndex((t) => t.state === "current") ?? 0;
 
   const content = (
     <Box sx={{ display: "flex", flexDirection: "column", maxHeight: isMobile ? "90vh" : "85vh" }}>
@@ -138,7 +204,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
             color: "text.primary",
           }}
         >
-          Policy Details
+          Endorsement Tracker
         </Typography>
 
         <IconButton
@@ -148,15 +214,8 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
             width: 32,
             height: 32,
             color: "text.secondary",
-            "&:hover": {
-              bgcolor: "surface.secondary",
-            },
-            "&:focus": {
-              outline: "none !important",
-            },
-            "&:focus-visible": {
-              outline: "none !important",
-            },
+            "&:hover": { bgcolor: "surface.secondary" },
+            "&:focus": { outline: "none !important" },
           }}
         >
           <X size={18} />
@@ -186,7 +245,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
               width: 48,
               height: 48,
               borderRadius: "10px",
-              bgcolor: iconConfig.iconBg,
+              bgcolor: "surface.secondary",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -194,7 +253,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
               flexShrink: 0,
             }}
           >
-            {iconConfig.icon}
+            ✍️
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
@@ -205,7 +264,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
                 mb: 0.5,
               }}
             >
-              {currentPolicy.name}
+              {currentEndorsement.type}
             </Typography>
             <Typography
               sx={{
@@ -214,7 +273,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
                 fontFamily: "DM Mono, monospace",
               }}
             >
-              {currentPolicy.policyNumber}
+              {currentEndorsement.policyId}
             </Typography>
           </Box>
           <Chip
@@ -228,52 +287,60 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
               height: "auto",
               px: 1,
               py: 0.25,
-              "& .MuiChip-label": {
-                px: 0,
-                py: 0,
-              },
             }}
           />
         </Box>
 
         <Box sx={{ mb: 2 }}>
-          <SectionTitle>Policy Information</SectionTitle>
-          <DetailRow label="Insurer" value={currentPolicy.insurer} />
-          <DetailRow label="Policy Type" value={currentPolicy.type || "—"} />
-          <DetailRow
-            label="Policy Number"
-            value={
-              <Typography
-                sx={{
-                  fontFamily: "DM Mono, monospace",
-                  fontSize: 11,
-                  fontWeight: 500,
-                }}
+          <SectionTitle>Request details</SectionTitle>
+          <DetailRow label="Policy" value={currentEndorsement.policyName} />
+          <DetailRow label="Insurer" value={currentEndorsement.insurer} />
+          <DetailRow label="Member Name" value={currentEndorsement.memberName} />
+          <DetailRow label="Requested Date" value={currentEndorsement.requestedDateDisplay || "—"} />
+          {currentEndorsement.completedDateDisplay && (
+            <DetailRow label="Completed Date" value={currentEndorsement.completedDateDisplay} />
+          )}
+        </Box>
+
+        {/* Timeline Stepper UI */}
+        {currentEndorsement.timeline && currentEndorsement.timeline.length > 0 && (
+          <Box sx={{ mt: 2 }}>
+            <SectionTitle>Status Timeline</SectionTitle>
+            <Box sx={{ mt: 1.5, width: "100%", pb: 1 }}>
+              <Stepper
+                alternativeLabel={!isMobile}
+                orientation={isMobile ? "vertical" : "horizontal"}
+                activeStep={fallbackActiveStep}
+                connector={isMobile ? undefined : <EndorsementConnector />}
+                sx={{ width: "100%" }}
               >
-                {currentPolicy.policyNumber}
-              </Typography>
-            }
-          />
-        </Box>
-
-        <Box sx={{ mb: 2 }}>
-          <SectionTitle>Coverage Details</SectionTitle>
-          <DetailRow
-            label={currentPolicy.coverageLabel || "Sum Insured"}
-            value={currentPolicy.sumInsuredDisplay || "—"}
-          />
-          <DetailRow label="Annual Premium" value={currentPolicy.premiumDisplay || "—"} />
-          <DetailRow label="Deductible" value={currentPolicy.deductibleDisplay || "N/A"} />
-          <DetailRow
-            label="Covered Members"
-            value={currentPolicy.memberIds?.length ? getMemberListText(currentPolicy.memberIds) : "—"}
-          />
-        </Box>
-
-        <Box>
-          <SectionTitle>Key Dates</SectionTitle>
-          <DetailRow label="Renewal Date" value={currentPolicy.renewDateDisplay || "—"} />
-        </Box>
+                {currentEndorsement.timeline.map((step) => (
+                  <Step key={step.label} completed={step.state === "done"}>
+                    <StepLabel
+                      slots={{
+                        stepIcon: (props: any) => (
+                          <EndorsementStepIcon {...props} iconState={step.state} />
+                        ),
+                      }}
+                      slotProps={{
+                        label: {
+                          sx: {
+                            fontSize: 11,
+                            fontWeight: step.state === "current" ? 600 : 500,
+                            color: step.state === "current" || step.state === "done" ? "text.primary" : "text.disabled",
+                            textAlign: isMobile ? "left" : "center",
+                          },
+                        },
+                      }}
+                    >
+                      {step.label}
+                    </StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+            </Box>
+          </Box>
+        )}
       </Box>
 
       <Box
@@ -291,13 +358,14 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
         <Button
           size="small"
           variant="outlined"
+          fullWidth={isMobile}
           onClick={onClose}
           sx={{
             fontSize: 12,
             fontWeight: 500,
             textTransform: "none",
             minHeight: 36,
-            px: 1.75,
+            px: 2.5,
             py: 1,
             borderColor: "border.light",
             color: "text.secondary",
@@ -305,43 +373,10 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
               borderColor: "border.light",
               bgcolor: "surface.secondary",
             },
-            "&:focus": {
-              outline: "none !important",
-            },
-            "&:focus-visible": {
-              outline: "none !important",
-            },
           }}
         >
           Close
         </Button>
-
-        {!isExternal && (
-          <Button
-            size="small"
-            variant="contained"
-            sx={{
-              fontSize: 12,
-              fontWeight: 500,
-              textTransform: "none",
-              minHeight: 36,
-              px: 1.75,
-              py: 1,
-              bgcolor: "info.light",
-              color: "info.main",
-              boxShadow: "none",
-              border: "1px solid #B5D4F4",
-              "&:hover": {
-                bgcolor: "info.light",
-                opacity: 0.9,
-                boxShadow: "none",
-              },
-            }}
-            startIcon={<Download size={16} />}
-          >
-            Download Certificate
-          </Button>
-        )}
       </Box>
     </Box>
   );

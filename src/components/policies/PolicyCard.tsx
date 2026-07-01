@@ -4,31 +4,15 @@ import Chip from "@mui/material/Chip";
 import Button from "@mui/material/Button";
 import { Download } from "lucide-react";
 import { getMemberDisplayText } from "../../services/api";
+import { getIconForCategory, getCoverageText } from "../../services/iconUtils";
+import type { PolicyData } from "../../types/models";
 
-export type PolicyData = {
-  name: string;
-  policyNumber: string;
-  insurer: string;
-  coverage: string;
-  memberIds: string[];
-  renewDate: string;
-  renewLabel: string;
-  status: "active" | "due" | "upcoming" | "external";
-  icon: React.ReactNode;
-  iconBg: string;
-  borderColor?: string;
-  renewDateColor?: string;
-  type?: string;
-  premium?: string;
-  deductible?: string;
-  sumInsuredFull?: string;
-};
-
-const statusMap = {
+const statusMap: Record<string, { label: string; color: string; bg: string }> = {
   active: { label: "Active", color: "#3B6D11", bg: "#EAF3DE" },
-  due: { label: "Due 12d", color: "#854F0B", bg: "#FAEEDA" },
+  due: { label: "Expiring Soon", color: "#854F0B", bg: "#FAEEDA" },
   upcoming: { label: "Upcoming", color: "#1456A0", bg: "#EBF3FC" },
   external: { label: "External", color: "#6B6963", bg: "#F1EFE8" },
+  expired: { label: "Expired", color: "#A32D2D", bg: "#FCEBEB" },
 };
 
 export default function PolicyCard({
@@ -38,8 +22,10 @@ export default function PolicyCard({
   policy: PolicyData;
   onClick?: () => void;
 }) {
-  const st = statusMap[policy.status];
-  const isExternal = policy.status === "external";
+  const st = statusMap[policy.status] ?? statusMap.active;
+  const isExternal = policy.isExternal || policy.status === "external";
+  const iconConfig = getIconForCategory(policy.category, policy.status);
+  const coverageText = getCoverageText(policy.category, policy.sumInsured);
 
   return (
     <Box
@@ -47,7 +33,7 @@ export default function PolicyCard({
       sx={{
         bgcolor: isExternal ? "surface.secondary" : "background.paper",
         border: "1px solid",
-        borderColor: policy.borderColor || "border.main",
+        borderColor: iconConfig.borderColor || "border.main",
         borderStyle: isExternal ? "dashed" : "solid",
         borderRadius: 3,
         p: 1.75,
@@ -68,7 +54,7 @@ export default function PolicyCard({
             width: 40,
             height: 40,
             borderRadius: "9px",
-            bgcolor: policy.iconBg,
+            bgcolor: iconConfig.iconBg,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -76,7 +62,7 @@ export default function PolicyCard({
             flexShrink: 0,
           }}
         >
-          {policy.icon}
+          {iconConfig.icon}
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography
@@ -129,8 +115,10 @@ export default function PolicyCard({
         }}
       >
         <span>{policy.insurer}</span>
-        <span>{policy.coverage}</span>
-        <span>{getMemberDisplayText(policy.memberIds)}</span>
+        <span>{coverageText}</span>
+        {policy.memberIds?.length > 0 && (
+          <span>{getMemberDisplayText(policy.memberIds)}</span>
+        )}
       </Box>
 
       <Box
@@ -146,16 +134,16 @@ export default function PolicyCard({
         }}
       >
         <Typography sx={{ fontSize: 11, color: "text.disabled" }}>
-          {policy.renewLabel}{" "}
+          {policy.renewLabel || "Renews:"}{" "}
           <Typography
             component="span"
             sx={{
               fontWeight: 600,
               fontSize: 12,
-              color: policy.renewDateColor || "text.primary",
+              color: iconConfig.renewDateColor || "text.primary",
             }}
           >
-            {policy.renewDate}
+            {policy.renewDateDisplay || "—"}
           </Typography>
         </Typography>
         <Box sx={{ display: "flex", gap: 0.75, flexWrap: "wrap" }}>

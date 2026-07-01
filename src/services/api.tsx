@@ -1,4 +1,4 @@
-import { Heart, Car, Shield, Home, Plane, FileText } from "lucide-react";
+import { apiClient } from "./apiClient";
 import type {
   Member,
   PolicyData,
@@ -7,419 +7,26 @@ import type {
   RequirementData,
   TicketData,
   VehicleData,
+  DocumentData,
+  AlertData,
+  DashboardSummary,
+  LoginResponse,
+  Advisor,
+  Faq,
   InsuranceEntity,
 } from "../types/models";
 
-const membersList: Member[] = [
-  { id: "all", name: "All Members" },
-  {
-    id: "rajesh",
-    name: "Rajesh Sharma",
-    profile: {
-      mobile: "+91 98765 43210",
-      email: "rajesh.sharma@gmail.com",
-      dob: "12 Jun 1978 (46 years)",
-      pan: "ABCRS1234F",
-      aadhaar: "XXXX XXXX 3456",
-      address: "Flat 4B, Sunrise Apts, Baner Road, Pune — 411045",
-      relationship: "Family Head",
-      initials: "RS",
-      clientId: "CLI-2020-00891",
-      since: "Jan 2020",
-      kyc: [
-        { label: "PAN Card", status: "verified" },
-        { label: "Aadhaar Card", status: "verified" },
-        { label: "Address Proof", status: "pending" },
-        { label: "Photograph", status: "verified" },
-        { label: "Bank Account", status: "not-added" },
-        { label: "Video KYC", status: "not-added" },
-      ],
-    },
-  },
-  {
-    id: "priya",
-    name: "Priya Sharma",
-    profile: {
-      mobile: "+91 98765 43211",
-      email: "priya.sharma@gmail.com",
-      dob: "24 Sep 1980 (44 years)",
-      pan: "BKCPS5678G",
-      aadhaar: "XXXX XXXX 7890",
-      address: "Flat 4B, Sunrise Apts, Baner Road, Pune — 411045",
-      relationship: "Spouse",
-      initials: "PS",
-      clientId: "CLI-2020-00892",
-      since: "Jan 2020",
-      kyc: [
-        { label: "PAN Card", status: "verified" },
-        { label: "Aadhaar Card", status: "verified" },
-        { label: "Address Proof", status: "verified" },
-        { label: "Photograph", status: "verified" },
-        { label: "Bank Account", status: "not-added" },
-        { label: "Video KYC", status: "not-added" },
-      ],
-    },
-  },
-  {
-    id: "aarav",
-    name: "Aarav Sharma",
-    profile: {
-      mobile: "—",
-      email: "—",
-      dob: "05 Mar 2015 (10 years)",
-      pan: "—",
-      aadhaar: "XXXX XXXX 1234",
-      address: "Flat 4B, Sunrise Apts, Baner Road, Pune — 411045",
-      relationship: "Son",
-      initials: "AS",
-      clientId: "CLI-2024-01455",
-      since: "May 2024",
-      kyc: [
-        { label: "Aadhaar Card", status: "verified" },
-        { label: "Photograph", status: "pending" },
-      ],
-    },
-  },
-];
+// ─── Helper: member display text ───────────────────────────────
+// These work with a cached member list that gets populated on first load.
+let cachedMembers: Member[] = [];
 
-const policiesList: PolicyData[] = [
-  {
-    entityType: "policy",
-    id: "HLT-2024-0001432",
-    name: "Family Health Floater",
-    policyNumber: "HLT-2024-0001432",
-    insurer: "HDFC ERGO",
-    coverage: "₹25L",
-    sumInsuredFull: "₹25,00,000",
-    memberIds: ["rajesh", "priya", "aarav"],
-    renewDate: "28 Mar 2026",
-    renewLabel: "Renews:",
-    status: "active",
-    icon: <Heart size={19} />,
-    iconBg: "#EAF3DE",
-    type: "Health Insurance",
-    premium: "₹42,500 / year",
-    deductible: "₹3,000 / claim",
-  },
-  {
-    entityType: "policy",
-    id: "MTR-2024-0887654",
-    name: "Car Insurance — Maruti Swift",
-    policyNumber: "MTR-2024-0887654",
-    insurer: "Bajaj Allianz",
-    coverage: "IDV: ₹8.5L",
-    sumInsuredFull: "₹8,50,000",
-    memberIds: ["rajesh"],
-    renewDate: "11 May 2025",
-    renewLabel: "Expires:",
-    renewDateColor: "#854F0B",
-    status: "due",
-    icon: <Car size={19} />,
-    iconBg: "#FAEEDA",
-    borderColor: "#FAC775",
-    type: "Motor Insurance",
-    premium: "₹18,500 / year",
-    deductible: "₹2,000 / claim",
-  },
-  {
-    entityType: "policy",
-    id: "LIF-2023-0045231",
-    name: "Term Life Insurance",
-    policyNumber: "LIF-2023-0045231",
-    insurer: "LIC of India",
-    coverage: "SA: ₹1Cr",
-    sumInsuredFull: "₹1,00,00,000",
-    memberIds: ["rajesh"],
-    renewDate: "01 Jan 2026",
-    renewLabel: "Renews:",
-    status: "active",
-    icon: <Shield size={19} />,
-    iconBg: "#EBF3FC",
-    type: "Life Insurance",
-    premium: "₹48,000 / year",
-    deductible: "N/A",
-  },
-  {
-    entityType: "policy",
-    id: "EXT-STR-001",
-    name: "Individual Health (Uploaded)",
-    policyNumber: "Star Health — Individual",
-    insurer: "Star Health",
-    coverage: "₹10L",
-    sumInsuredFull: "₹10,00,000",
-    memberIds: ["priya"],
-    renewDate: "15 Aug 2025",
-    renewLabel: "Renews:",
-    status: "external",
-    icon: <FileText size={19} />,
-    iconBg: "#F1EFE8",
-    type: "Health Insurance",
-    premium: "—",
-    deductible: "—",
-  },
-  {
-    entityType: "policy",
-    id: "HOM-2024-0012344",
-    name: "Home Structure Insurance",
-    policyNumber: "HOM-2024-0012344",
-    insurer: "New India Assurance",
-    coverage: "₹80L",
-    sumInsuredFull: "₹80,00,000",
-    memberIds: ["rajesh"],
-    renewDate: "30 Sep 2025",
-    renewLabel: "Renews:",
-    status: "active",
-    icon: <Home size={19} />,
-    iconBg: "#F9E8FC",
-    type: "Home Insurance",
-    premium: "₹24,000 / year",
-    deductible: "₹5,000 / claim",
-  },
-  {
-    entityType: "policy",
-    id: "TRV-2025-0004521",
-    name: "Travel Insurance — Europe",
-    policyNumber: "TRV-2025-0004521",
-    insurer: "Tata AIG",
-    coverage: "₹50L",
-    sumInsuredFull: "₹50,00,000",
-    memberIds: ["rajesh", "priya"],
-    renewDate: "20 May – 04 Jun",
-    renewLabel: "Active:",
-    status: "upcoming",
-    icon: <Plane size={19} />,
-    iconBg: "#E8F9FC",
-    type: "Travel Insurance",
-    premium: "₹8,500",
-    deductible: "N/A",
-  },
-];
-
-const claimsList: ClaimData[] = [
-  {
-    entityType: "claim",
-    id: "CL-2025-0124",
-    claimNumber: "CL-2025-0124",
-    policyName: "Health Floater",
-    policyId: "HLT-2024-0001432",
-    memberName: "Priya Sharma",
-    memberId: "priya",
-    claimType: "Hospitalisation",
-    amount: "₹1,20,000",
-    status: "doc-requested",
-    filedDate: "28 Apr 2025",
-    insurer: "HDFC ERGO",
-    hospital: "Apollo Hospital, Pune",
-  },
-  {
-    entityType: "claim",
-    id: "CL-2025-0098",
-    claimNumber: "CL-2025-0098",
-    policyName: "Car Insurance",
-    policyId: "MTR-2024-0887654",
-    memberName: "Rajesh Sharma",
-    memberId: "rajesh",
-    claimType: "Own Damage",
-    amount: "₹28,500",
-    status: "under-review",
-    filedDate: "15 Apr 2025",
-    insurer: "Bajaj Allianz",
-    hospital: "Authorised Garage, Pune",
-  },
-  {
-    entityType: "claim",
-    id: "CL-2024-0892",
-    claimNumber: "CL-2024-0892",
-    policyName: "Health Floater",
-    policyId: "HLT-2024-0001432",
-    memberName: "Rajesh Sharma",
-    memberId: "rajesh",
-    claimType: "OPD",
-    amount: "₹45,200",
-    status: "approved",
-    filedDate: "10 Mar 2025",
-    insurer: "HDFC ERGO",
-  },
-  {
-    entityType: "claim",
-    id: "CL-2024-0771",
-    claimNumber: "CL-2024-0771",
-    policyName: "Car Insurance",
-    policyId: "MTR-2024-0887654",
-    memberName: "Rajesh Sharma",
-    memberId: "rajesh",
-    claimType: "Third Party",
-    amount: "₹15,000",
-    status: "settled",
-    filedDate: "02 Dec 2024",
-    insurer: "Bajaj Allianz",
-  },
-];
-
-const endorsementsList: EndorsementData[] = [
-  {
-    entityType: "endorsement",
-    id: "END-2025-0041",
-    endorsementNumber: "END-2025-0041",
-    policyName: "Family Health Floater",
-    policyId: "HLT-2024-0001432",
-    memberName: "Rajesh Sharma",
-    memberId: "rajesh",
-    type: "Add Member",
-    description: "Add newborn Aarav Sharma to family floater policy",
-    status: "in-progress",
-    requestedDate: "02 May 2025",
-    insurer: "HDFC ERGO",
-  },
-  {
-    entityType: "endorsement",
-    id: "END-2025-0033",
-    endorsementNumber: "END-2025-0033",
-    policyName: "Car Insurance — Maruti Swift",
-    policyId: "MTR-2024-0887654",
-    memberName: "Rajesh Sharma",
-    memberId: "rajesh",
-    type: "Address Change",
-    description: "Update registered address to new residence in Baner, Pune",
-    status: "pending",
-    requestedDate: "18 Apr 2025",
-    insurer: "Bajaj Allianz",
-  },
-  {
-    entityType: "endorsement",
-    id: "END-2024-0198",
-    endorsementNumber: "END-2024-0198",
-    policyName: "Family Health Floater",
-    policyId: "HLT-2024-0001432",
-    memberName: "Priya Sharma",
-    memberId: "priya",
-    type: "Name Correction",
-    description: "Correct spelling of name from 'Priyaa' to 'Priya'",
-    status: "completed",
-    requestedDate: "10 Jan 2025",
-    completedDate: "15 Jan 2025",
-    insurer: "HDFC ERGO",
-  },
-  {
-    entityType: "endorsement",
-    id: "END-2024-0156",
-    endorsementNumber: "END-2024-0156",
-    policyName: "Term Life Insurance",
-    policyId: "LIF-2023-0045231",
-    memberName: "Rajesh Sharma",
-    memberId: "rajesh",
-    type: "Sum Insured Upgrade",
-    description: "Increase sum assured from ₹1Cr to ₹2Cr",
-    status: "rejected",
-    requestedDate: "25 Nov 2024",
-    insurer: "LIC of India",
-  },
-];
-
-const requirementsList: RequirementData[] = [
-  {
-    entityType: "requirement",
-    id: "REQ-2025-0041",
-    type: "Health Insurance",
-    member: "Priya Sharma",
-    coverage: "₹10L",
-    advisor: "Arjun Mehta",
-    status: "quote-shared",
-    date: "22 Apr 2025",
-    quotesAvailable: 3,
-  },
-  {
-    entityType: "requirement",
-    id: "REQ-2024-0187",
-    type: "Term Life Insurance",
-    member: "Rajesh Sharma",
-    coverage: "₹2Cr",
-    advisor: "Arjun Mehta",
-    status: "policy-issued",
-    date: "10 Aug 2024",
-    policyId: "LIF-2023-0045231",
-  },
-];
-
-const ticketsList: TicketData[] = [
-  {
-    entityType: "ticket",
-    id: "TKT-2025-0089",
-    ticketNumber: "TKT-2025-0089",
-    subject: "Hospital cashless denied",
-    policyId: "HLT-2024-0001432",
-    policyName: "Health Floater",
-    memberId: "rajesh",
-    category: "Claim assistance",
-    priority: "High",
-    status: "open",
-    updatedDate: "Today",
-  },
-  {
-    entityType: "ticket",
-    id: "TKT-2025-0067",
-    ticketNumber: "TKT-2025-0067",
-    subject: "Wrong address on policy",
-    policyId: "MTR-2024-0887654",
-    policyName: "Car Insurance",
-    memberId: "rajesh",
-    category: "Policy correction",
-    priority: "Normal",
-    status: "in-progress",
-    updatedDate: "Yesterday",
-  },
-  {
-    entityType: "ticket",
-    id: "TKT-2024-0892",
-    ticketNumber: "TKT-2024-0892",
-    subject: "Premium receipt needed",
-    policyId: "LIF-2023-0045231",
-    policyName: "Term Life",
-    memberId: "rajesh",
-    category: "Premium receipt / Tax certificate",
-    priority: "Normal",
-    status: "resolved",
-    updatedDate: "12 Dec 2024",
-  },
-];
-
-export const vehiclesList: VehicleData[] = [
-  {
-    entityType: "vehicle",
-    id: "VEH-2024-001",
-    name: "Maruti Suzuki Swift VXI",
-    registrationNumber: "MH-12-AB-1234",
-    memberId: "rajesh",
-    memberName: "Rajesh Sharma",
-    status: "due",
-    renewDate: "11 May 2025",
-    icon: "🚗",
-    make: "Maruti Suzuki",
-    model: "Swift VXI",
-    year: "2018",
-    policyId: "MTR-2024-0887654",
-  },
-  {
-    entityType: "vehicle",
-    id: "VEH-2024-002",
-    name: "Honda Activa 6G",
-    registrationNumber: "MH-12-CD-5678",
-    memberId: "priya",
-    memberName: "Priya Sharma",
-    status: "active",
-    renewDate: "22 Oct 2025",
-    icon: "🛵",
-    make: "Honda",
-    model: "Activa 6G",
-    year: "2021",
-  },
-];
-
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+export function setCachedMembers(members: Member[]) {
+  cachedMembers = members;
+}
 
 export const getMemberDisplayText = (memberIds: string[]): string => {
   const memberNames = memberIds.map((id) => {
-    const member = membersList.find((m) => m.id === id);
+    const member = cachedMembers.find((m) => m.id === id);
     return member ? member.name.split(" ")[0] : id;
   });
 
@@ -436,50 +43,267 @@ export const getMemberDisplayText = (memberIds: string[]): string => {
 
 export const getMemberListText = (memberIds: string[]): string => {
   const memberNames = memberIds.map((id) => {
-    const member = membersList.find((m) => m.id === id);
+    const member = cachedMembers.find((m) => m.id === id);
     return member ? member.name.split(" ")[0] : id;
   });
   return memberNames.join(", ");
 };
 
+// ─── Query param types ─────────────────────────────────────────
+
+type ListParams = Record<string, string | number | boolean | undefined>;
+
+// ─── API ───────────────────────────────────────────────────────
+
 export const api = {
-  getMembers: async (): Promise<Member[]> => {
-    await delay(300);
-    return membersList;
-  },
-  getPolicies: async (): Promise<PolicyData[]> => {
-    await delay(400);
-    return policiesList;
-  },
-  getClaims: async (): Promise<ClaimData[]> => {
-    await delay(500);
-    return claimsList;
-  },
-  getEndorsements: async (): Promise<EndorsementData[]> => {
-    await delay(500);
-    return endorsementsList;
-  },
-  getRequirements: async (): Promise<RequirementData[]> => {
-    await delay(300);
-    return requirementsList;
-  },
-  getTickets: async (): Promise<TicketData[]> => {
-    await delay(300);
-    return ticketsList;
-  },
-  getInsuranceEntities: async (): Promise<InsuranceEntity[]> => {
-    await delay(500);
-    return [
-      ...policiesList,
-      ...claimsList,
-      ...endorsementsList,
-      ...requirementsList,
-      ...ticketsList,
-    ];
+  // ── Auth ─────────────────────────────────────────────────────
+  login: async (username: string, password: string): Promise<LoginResponse> => {
+    const res = await apiClient.post<LoginResponse>("/api/auth/login", {
+      username,
+      password,
+    });
+    return res.data;
   },
 
-  getVehicles: async (): Promise<VehicleData[]> => {
-    await delay(600);
-    return vehiclesList;
+  // ── Members ──────────────────────────────────────────────────
+  getMembers: async (): Promise<Member[]> => {
+    const res = await apiClient.get<Member[]>("/api/members");
+    return res.data;
+  },
+
+  getMemberById: async (id: string): Promise<Member> => {
+    const res = await apiClient.get<Member>(`/api/members/${id}`);
+    return res.data;
+  },
+
+  createMember: async (member: Partial<Member>): Promise<Member> => {
+    const res = await apiClient.post<Member>("/api/members", member);
+    return res.data;
+  },
+
+  updateMember: async (id: string, patch: { mobile?: string; email?: string; address?: string }): Promise<Member> => {
+    const res = await apiClient.patch<Member>(`/api/members/${id}`, patch);
+    return res.data;
+  },
+
+  deleteMember: async (id: string): Promise<void> => {
+    await apiClient.del(`/api/members/${id}`);
+  },
+
+  // ── Policies ─────────────────────────────────────────────────
+  getPolicies: async (params?: ListParams): Promise<PolicyData[]> => {
+    const res = await apiClient.get<PolicyData[]>("/api/policies", params);
+    return res.data;
+  },
+
+  getPolicyById: async (id: string): Promise<PolicyData> => {
+    const res = await apiClient.get<PolicyData>(`/api/policies/${id}`);
+    return res.data;
+  },
+
+  // ── Claims ───────────────────────────────────────────────────
+  getClaims: async (params?: ListParams): Promise<ClaimData[]> => {
+    const res = await apiClient.get<ClaimData[]>("/api/claims", params);
+    return res.data;
+  },
+
+  getClaimById: async (id: string): Promise<ClaimData> => {
+    const res = await apiClient.get<ClaimData>(`/api/claims/${id}`);
+    return res.data;
+  },
+
+  createClaim: async (data: Partial<ClaimData>): Promise<ClaimData> => {
+    const res = await apiClient.post<ClaimData>("/api/claims", data);
+    return res.data;
+  },
+
+  updateClaim: async (id: string, data: Partial<ClaimData>): Promise<ClaimData> => {
+    const res = await apiClient.put<ClaimData>(`/api/claims/${id}`, data);
+    return res.data;
+  },
+
+  patchClaim: async (id: string, patch: { status?: string; step?: number }): Promise<ClaimData> => {
+    const res = await apiClient.patch<ClaimData>(`/api/claims/${id}`, patch);
+    return res.data;
+  },
+
+  deleteClaim: async (id: string): Promise<void> => {
+    await apiClient.del(`/api/claims/${id}`);
+  },
+
+  // ── Endorsements ─────────────────────────────────────────────
+  getEndorsements: async (params?: ListParams): Promise<EndorsementData[]> => {
+    const res = await apiClient.get<EndorsementData[]>("/api/endorsements", params);
+    return res.data;
+  },
+
+  getEndorsementById: async (id: string): Promise<EndorsementData> => {
+    const res = await apiClient.get<EndorsementData>(`/api/endorsements/${id}`);
+    return res.data;
+  },
+
+  createEndorsement: async (data: Partial<EndorsementData>): Promise<EndorsementData> => {
+    const res = await apiClient.post<EndorsementData>("/api/endorsements", data);
+    return res.data;
+  },
+
+  updateEndorsement: async (id: string, data: Partial<EndorsementData>): Promise<EndorsementData> => {
+    const res = await apiClient.put<EndorsementData>(`/api/endorsements/${id}`, data);
+    return res.data;
+  },
+
+  patchEndorsement: async (id: string, patch: { status?: string; completedDateIso?: string }): Promise<EndorsementData> => {
+    const res = await apiClient.patch<EndorsementData>(`/api/endorsements/${id}`, patch);
+    return res.data;
+  },
+
+  deleteEndorsement: async (id: string): Promise<void> => {
+    await apiClient.del(`/api/endorsements/${id}`);
+  },
+
+  // ── Requirements ─────────────────────────────────────────────
+  getRequirements: async (params?: ListParams): Promise<RequirementData[]> => {
+    const res = await apiClient.get<RequirementData[]>("/api/requirements", params);
+    return res.data;
+  },
+
+  getRequirementById: async (id: string): Promise<RequirementData> => {
+    const res = await apiClient.get<RequirementData>(`/api/requirements/${id}`);
+    return res.data;
+  },
+
+  createRequirement: async (data: Partial<RequirementData>): Promise<RequirementData> => {
+    const res = await apiClient.post<RequirementData>("/api/requirements", data);
+    return res.data;
+  },
+
+  selectQuote: async (requirementId: string, quoteId: string): Promise<RequirementData> => {
+    const res = await apiClient.post<RequirementData>(
+      `/api/requirements/${requirementId}/select-quote`,
+      { quoteId }
+    );
+    return res.data;
+  },
+
+  deleteRequirement: async (id: string): Promise<void> => {
+    await apiClient.del(`/api/requirements/${id}`);
+  },
+
+  // ── Tickets ──────────────────────────────────────────────────
+  getTickets: async (params?: ListParams): Promise<TicketData[]> => {
+    const res = await apiClient.get<TicketData[]>("/api/tickets", params);
+    return res.data;
+  },
+
+  getTicketById: async (id: string): Promise<TicketData> => {
+    const res = await apiClient.get<TicketData>(`/api/tickets/${id}`);
+    return res.data;
+  },
+
+  createTicket: async (data: Partial<TicketData>): Promise<TicketData> => {
+    const res = await apiClient.post<TicketData>("/api/tickets", data);
+    return res.data;
+  },
+
+  patchTicket: async (id: string, patch: { status?: string }): Promise<TicketData> => {
+    const res = await apiClient.patch<TicketData>(`/api/tickets/${id}`, patch);
+    return res.data;
+  },
+
+  replyToTicket: async (id: string, message: string): Promise<TicketData> => {
+    const res = await apiClient.post<TicketData>(`/api/tickets/${id}/replies`, { message });
+    return res.data;
+  },
+
+  deleteTicket: async (id: string): Promise<void> => {
+    await apiClient.del(`/api/tickets/${id}`);
+  },
+
+  // ── Documents ────────────────────────────────────────────────
+  getDocuments: async (params?: ListParams): Promise<DocumentData[]> => {
+    const res = await apiClient.get<DocumentData[]>("/api/documents", params);
+    return res.data;
+  },
+
+  getDocumentById: async (id: string): Promise<DocumentData> => {
+    const res = await apiClient.get<DocumentData>(`/api/documents/${id}`);
+    return res.data;
+  },
+
+  createDocument: async (data: Partial<DocumentData>): Promise<DocumentData> => {
+    const res = await apiClient.post<DocumentData>("/api/documents", data);
+    return res.data;
+  },
+
+  deleteDocument: async (id: string): Promise<void> => {
+    await apiClient.del(`/api/documents/${id}`);
+  },
+
+  // ── Vehicles ─────────────────────────────────────────────────
+  getVehicles: async (params?: ListParams): Promise<VehicleData[]> => {
+    const res = await apiClient.get<VehicleData[]>("/api/vehicles", params);
+    return res.data;
+  },
+
+  getVehicleById: async (id: string): Promise<VehicleData> => {
+    const res = await apiClient.get<VehicleData>(`/api/vehicles/${id}`);
+    return res.data;
+  },
+
+  createVehicle: async (data: Partial<VehicleData>): Promise<VehicleData> => {
+    const res = await apiClient.post<VehicleData>("/api/vehicles", data);
+    return res.data;
+  },
+
+  updateVehicle: async (id: string, data: Partial<VehicleData>): Promise<VehicleData> => {
+    const res = await apiClient.put<VehicleData>(`/api/vehicles/${id}`, data);
+    return res.data;
+  },
+
+  deleteVehicle: async (id: string): Promise<void> => {
+    await apiClient.del(`/api/vehicles/${id}`);
+  },
+
+  // ── Alerts ───────────────────────────────────────────────────
+  getAlerts: async (): Promise<AlertData[]> => {
+    const res = await apiClient.get<AlertData[]>("/api/alerts");
+    return res.data;
+  },
+
+  markAlertRead: async (id: string): Promise<AlertData> => {
+    const res = await apiClient.patch<AlertData>(`/api/alerts/${id}`, { read: true });
+    return res.data;
+  },
+
+  markAllAlertsRead: async (): Promise<void> => {
+    await apiClient.post("/api/alerts/mark-all-read");
+  },
+
+  // ── Dashboard ────────────────────────────────────────────────
+  getDashboardSummary: async (memberId?: string): Promise<DashboardSummary> => {
+    const params = memberId ? { memberId } : undefined;
+    const res = await apiClient.get<DashboardSummary>("/api/dashboard/summary", params);
+    return res.data;
+  },
+
+  // ── Reference ────────────────────────────────────────────────
+  getAdvisor: async (): Promise<Advisor> => {
+    const res = await apiClient.get<Advisor>("/api/advisor");
+    return res.data;
+  },
+
+  getFaqs: async (): Promise<Faq[]> => {
+    const res = await apiClient.get<Faq[]>("/api/faqs");
+    return res.data;
+  },
+
+  getInsuranceEntities: async (): Promise<InsuranceEntity[]> => {
+    const [policies, claims, endorsements, requirements] = await Promise.all([
+      api.getPolicies(),
+      api.getClaims(),
+      api.getEndorsements(),
+      api.getRequirements(),
+    ]);
+    return [...policies, ...claims, ...endorsements, ...requirements];
   },
 };
