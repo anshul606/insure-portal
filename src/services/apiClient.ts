@@ -1,9 +1,9 @@
 // In dev, Vite proxy forwards /customer-beta/api to target URL
 // In production, use the env-provided URL directly
-const API_HOST = import.meta.env.VITE_API_URL || "https://portal.leadcrm.in:82";
+const API_HOST = import.meta.env.VITE_API_URL;
 const BASE_URL = import.meta.env.DEV
   ? "/customer-beta"
-  : `${API_HOST}/customer-beta`;
+  : (API_HOST ? `${API_HOST}/customer-beta` : "/customer-beta");
 
 export type PaginatedMeta = {
   totalCount: number;
@@ -72,6 +72,7 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     if (response.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      localStorage.removeItem("selectedMemberId");
       window.location.href = "/";
     }
     throw new ApiError(response.status, body);

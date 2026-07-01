@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/customer-beta/:path*",
+      "destination": "https://portal.leadcrm.in:82/customer-beta/:path*"
+    }
+  ]
+}

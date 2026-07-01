@@ -195,7 +195,7 @@ export default function Header() {
         <MenuItem onClick={() => { handleProfileClose(); navigate("/profile"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1 }}>Profile settings</MenuItem>
         <MenuItem onClick={() => { handleProfileClose(); navigate("/tickets"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1 }}>Help & Support</MenuItem>
         <Divider sx={{ my: 0.5 }} />
-        <MenuItem onClick={() => { handleProfileClose(); localStorage.removeItem("token"); localStorage.removeItem("user"); navigate("/"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1, color: "error.main" }}>Logout</MenuItem>
+        <MenuItem onClick={() => { handleProfileClose(); localStorage.removeItem("token"); localStorage.removeItem("user"); localStorage.removeItem("selectedMemberId"); navigate("/"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1, color: "error.main" }}>Logout</MenuItem>
       </PopoverMenu>
     </>
   );

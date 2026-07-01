@@ -2,6 +2,7 @@ import { useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import { Plus } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 import Welcome from "../components/Welcome";
 import AppLayout from "../layouts/AppLayout";
@@ -11,7 +12,8 @@ import { useRequirement } from "../contexts/InsuranceContext";
 import GridSkeleton from "../components/shared/GridSkeleton";
 
 export default function RequirementsPage() {
-  const [showForm, setShowForm] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [showForm, setShowForm] = useState(searchParams.get("new") === "true");
   const { loading } = useRequirement();
 
   return (

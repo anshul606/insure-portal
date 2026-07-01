@@ -3,6 +3,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { Plus, ClipboardList } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 import AppLayout from "../layouts/AppLayout";
 import Welcome from "../components/Welcome";
@@ -15,7 +16,8 @@ import TableSkeleton from "../components/shared/TableSkeleton";
 export default function ClaimsPage() {
   const { selectedMemberId } = useMember();
   const { getClaimsByMember, loading } = useClaim();
-  const [showForm, setShowForm] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [showForm, setShowForm] = useState(searchParams.get("new") === "true");
 
   const claims = getClaimsByMember(selectedMemberId);
 

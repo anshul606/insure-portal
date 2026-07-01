@@ -33,8 +33,8 @@ export default defineConfig(({ mode }) => {
         description: "Your personal insurance client portal",
         start_url: "/",
         display: "standalone",
-        background_color: "#0f172a",
-        theme_color: "#4F46E5",
+        background_color: "#F7F6F3",
+        theme_color: "#1456A0",
         orientation: "portrait",
         icons: [
           {

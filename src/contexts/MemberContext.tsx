@@ -24,7 +24,14 @@ const MemberContext = createContext<MemberContextType | undefined>(undefined);
 export function MemberProvider({ children }: { children: ReactNode }) {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedMemberId, setSelectedMemberId] = useState("all");
+  const [selectedMemberId, setSelectedMemberIdState] = useState<string>(() => {
+    return localStorage.getItem("selectedMemberId") || "all";
+  });
+
+  const setSelectedMemberId = (id: string) => {
+    setSelectedMemberIdState(id);
+    localStorage.setItem("selectedMemberId", id);
+  };
 
   const refreshMembers = async () => {
     try {

@@ -2,6 +2,7 @@ import { useState } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import { Plus } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
 
 import Welcome from "../components/Welcome";
 import AppLayout from "../layouts/AppLayout";
@@ -14,7 +15,8 @@ import TableSkeleton from "../components/shared/TableSkeleton";
 import type { TicketData } from "../types/models";
 
 export default function TicketsPage() {
-  const [showForm, setShowForm] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [showForm, setShowForm] = useState(searchParams.get("new") === "true");
   const [selectedTicket, setSelectedTicket] = useState<TicketData | null>(null);
   const { loading } = useTicket();
 

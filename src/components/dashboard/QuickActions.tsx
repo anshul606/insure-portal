@@ -1,15 +1,18 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { FileText, Upload, FilePlus, Ticket } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const actions = [
-    { icon: <FileText size={22} />, title: "Raise Claim", sub: "File a new claim" },
-    { icon: <Upload size={22} />, title: "Upload Policy", sub: "From other insurers" },
-    { icon: <FilePlus size={22} />, title: "New Requirement", sub: "Get a quote" },
-    { icon: <Ticket size={22} />, title: "Support Ticket", sub: "Need help?" },
+    { icon: <FileText size={22} />, title: "Raise Claim", sub: "File a new claim", path: "/claims?new=true" },
+    { icon: <Upload size={22} />, title: "Upload Policy", sub: "From other insurers", path: "/upload" },
+    { icon: <FilePlus size={22} />, title: "New Requirement", sub: "Get a quote", path: "/requirements?new=true" },
+    { icon: <Ticket size={22} />, title: "Support Ticket", sub: "Need help?", path: "/tickets?new=true" },
 ];
 
 export default function QuickActions() {
+    const navigate = useNavigate();
+
     return (
         <Box sx={{ mt: 4 }}>
             <Typography
@@ -35,6 +38,7 @@ export default function QuickActions() {
                 {actions.map((action, index) => (
                     <Box
                         key={index}
+                        onClick={() => navigate(action.path)}
                         sx={{
                             bgcolor: "background.paper",
                             border: "1px solid",

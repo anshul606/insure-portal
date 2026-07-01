@@ -63,6 +63,31 @@ export default function Welcome({ title, content, hideMemberSelector }: dashboar
               pb: 0.25,
             }}
           >
+            <Box
+              onClick={() => setSelectedMemberId("all")}
+              sx={{
+                px: 1.75,
+                py: 0.75,
+                borderRadius: "20px",
+                fontSize: 12,
+                cursor: "pointer",
+                border: "1px solid",
+                borderColor:
+                  selectedMemberId === "all" ? "#B5D4F4" : "border.main",
+                bgcolor:
+                  selectedMemberId === "all" ? "info.light" : "surface.secondary",
+                color: selectedMemberId === "all" ? "info.main" : "text.secondary",
+                fontWeight: selectedMemberId === "all" ? 500 : 400,
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+                transition: "all 0.12s",
+                "&:hover": {
+                  bgcolor: selectedMemberId === "all" ? "info.light" : "grey.100",
+                },
+              }}
+            >
+              All Family
+            </Box>
             {members.map((member) => (
               <Box
                 key={member.id}
