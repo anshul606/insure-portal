@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import { Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 import AppLayout from "../layouts/AppLayout";
 import Welcome from "../components/Welcome";
@@ -12,6 +13,7 @@ import GridSkeleton from "../components/shared/GridSkeleton";
 export default function PoliciesPage() {
   const { selectedMemberId } = useMember();
   const { getPoliciesByMember, loading } = usePolicy();
+  const navigate = useNavigate();
 
   const policies = getPoliciesByMember(selectedMemberId);
 
@@ -44,6 +46,7 @@ export default function PoliciesPage() {
             size="small"
             variant="contained"
             startIcon={<Plus size={14} />}
+            onClick={() => navigate("/upload")}
             sx={{
               fontSize: 11,
               fontWeight: 500,
