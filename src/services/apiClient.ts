@@ -1,6 +1,6 @@
-// In dev, Vite proxy forwards /customer-beta/api to target URL
-// In production, use the env-provided URL directly
-const BASE_URL = "/customer-beta";
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/customer-beta`
+  : "/customer-beta";
 
 export type PaginatedMeta = {
   totalCount: number;
@@ -22,6 +22,8 @@ class ApiError extends Error {
     const message =
       typeof body === "object" && body !== null && "error" in body
         ? String((body as { error: string }).error)
+        : typeof body === "string" && body.length > 0
+        ? body
         : `Request failed with status ${status}`;
     super(message);
     this.name = "ApiError";
@@ -38,9 +40,10 @@ function getAuthHeaders(): Record<string, string> {
   return {};
 }
 
-function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {
-  // For relative paths, prefix with origin so URL() can parse it
-  const fullBase = BASE_URL.startsWith("http") ? BASE_URL : `${window.location.origin}${BASE_URL}`;
+export function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {
+  const fullBase = BASE_URL.startsWith("http")
+    ? BASE_URL
+    : `${window.location.origin}${BASE_URL}`;
   const url = new URL(`${fullBase}${path}`);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
@@ -50,6 +53,56 @@ function buildUrl(path: string, params?: Record<string, string | number | boolea
     });
   }
   return url.toString();
+}
+
+export function getAssetUrl(path?: string): string {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const fullBase = BASE_URL.startsWith("http")
+    ? BASE_URL
+    : `${window.location.origin}${BASE_URL}`;
+  return `${fullBase}${cleanPath}`;
+}
+
+export async function downloadFile(path: string, fallbackFileName: string = "download.pdf"): Promise<void> {
+  const url = buildUrl(path);
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      ...getAuthHeaders(),
+    },
+  });
+
+  if (!response.ok) {
+    let errText = "Failed to download file";
+    try {
+      const errObj = await response.json();
+      if (errObj && errObj.error) errText = errObj.error;
+    } catch {}
+    throw new ApiError(response.status, { error: errText });
+  }
+
+  const blob = await response.blob();
+  const contentDisposition = response.headers.get("Content-Disposition");
+  let filename = fallbackFileName;
+  if (contentDisposition) {
+    const match = contentDisposition.match(/filename\*?=(?:UTF-8'')?["']?([^"';]+)["']?/i);
+    if (match && match[1]) {
+      filename = decodeURIComponent(match[1]);
+    }
+  }
+
+  const blobUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 }
 
 async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
@@ -65,17 +118,17 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
   }
 
   if (!response.ok) {
-    // Handle 401 → redirect to login
     if (response.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       localStorage.removeItem("selectedMemberId");
-      window.location.href = "/";
+      if (window.location.pathname !== "/") {
+        window.location.href = "/";
+      }
     }
     throw new ApiError(response.status, body);
   }
 
-  // Extract pagination headers if present
   const totalCount = response.headers.get("X-Total-Count");
   const page = response.headers.get("X-Page");
   const pageSize = response.headers.get("X-Page-Size");
@@ -116,15 +169,7 @@ export const apiClient = {
       },
       body: body ? JSON.stringify(body) : undefined,
     });
-    try {
-      return await handleResponse<T>(response);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 500) {
-        console.warn("POST returned 500 but treating as success due to backend bug");
-        return { data: undefined as unknown as T };
-      }
-      throw err;
-    }
+    return handleResponse<T>(response);
   },
 
   async put<T>(path: string, body: unknown): Promise<ApiResponse<T>> {
@@ -136,15 +181,7 @@ export const apiClient = {
       },
       body: JSON.stringify(body),
     });
-    try {
-      return await handleResponse<T>(response);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 500) {
-        console.warn("PUT returned 500 but treating as success due to backend bug");
-        return { data: undefined as unknown as T };
-      }
-      throw err;
-    }
+    return handleResponse<T>(response);
   },
 
   async patch<T>(path: string, body: unknown): Promise<ApiResponse<T>> {
@@ -156,15 +193,7 @@ export const apiClient = {
       },
       body: JSON.stringify(body),
     });
-    try {
-      return await handleResponse<T>(response);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 500) {
-        console.warn("PATCH returned 500 but treating as success due to backend bug");
-        return { data: undefined as unknown as T };
-      }
-      throw err;
-    }
+    return handleResponse<T>(response);
   },
 
   async del<T>(path: string): Promise<ApiResponse<T>> {
@@ -175,15 +204,7 @@ export const apiClient = {
         ...getAuthHeaders(),
       },
     });
-    try {
-      return await handleResponse<T>(response);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 500) {
-        console.warn("DELETE returned 500 but treating as success due to backend bug");
-        return { data: undefined as unknown as T };
-      }
-      throw err;
-    }
+    return handleResponse<T>(response);
   },
 };
 

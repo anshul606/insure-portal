@@ -1,198 +1,380 @@
+import { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import Chip from "@mui/material/Chip";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
-import Chip from "@mui/material/Chip";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { X, Shield } from "lucide-react";
-import { useInsurance } from "../../contexts/InsuranceContext";
+import { type ReactNode } from "react";
 import type { VehicleData } from "../../types/models";
+import { useInsurance } from "../../contexts/InsuranceContext";
+import PolicyDetailModal from "../policies/PolicyDetailModal";
+
+function SectionTitle({ children }: { children: string }) {
+  return (
+    <Typography
+      sx={{
+        fontSize: 10,
+        fontWeight: 600,
+        color: "text.disabled",
+        textTransform: "uppercase",
+        letterSpacing: "0.06em",
+        mb: 1,
+      }}
+    >
+      {children}
+    </Typography>
+  );
+}
+
+function DetailRow({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        py: 1,
+        borderBottom: "1px solid",
+        borderColor: "border.main",
+        "&:last-child": { borderBottom: "none" },
+      }}
+    >
+      <Typography
+        sx={{
+          fontSize: 12,
+          color: "text.secondary",
+          flexShrink: 0,
+          mr: 1.5,
+        }}
+      >
+        {label}
+      </Typography>
+      <Typography
+        component="div"
+        sx={{
+          fontSize: 12,
+          fontWeight: 500,
+          color: "text.primary",
+          textAlign: "right",
+        }}
+      >
+        {value}
+      </Typography>
+    </Box>
+  );
+}
 
 export default function VehicleDetailModal({
+  vehicle,
   open,
   onClose,
-  vehicle,
 }: {
+  vehicle: VehicleData | null;
   open: boolean;
   onClose: () => void;
-  vehicle: VehicleData | null;
 }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { getPolicyById } = useInsurance();
+  const [activeVehicle, setActiveVehicle] = useState<VehicleData | null>(null);
+  const [policyModalOpen, setPolicyModalOpen] = useState(false);
 
-  if (!vehicle) return null;
+  useEffect(() => {
+    if (vehicle) setActiveVehicle(vehicle);
+  }, [vehicle]);
 
-  const policy = vehicle.policyId ? getPolicyById(vehicle.policyId) : null;
-  const [make = "—", ...modelParts] = (vehicle.makeModel || "").split(" ");
+  const currentVehicle = vehicle || activeVehicle;
+
+  if (!currentVehicle) return null;
+
+  const policy = currentVehicle.policyId ? getPolicyById(currentVehicle.policyId) : null;
+  const [make = "—", ...modelParts] = (currentVehicle.makeModel || "").split(" ");
   const model = modelParts.length > 0 ? modelParts.join(" ") : "—";
-  const iconEmoji = vehicle.vehicleType === "two-wheeler" ? "🏍️" : "🚗";
+  const iconEmoji = currentVehicle.vehicleType === "two-wheeler" ? "🏍️" : "🚗";
+  const isInsured = currentVehicle.status === "active" || currentVehicle.status === "insured";
 
   const content = (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        maxHeight: isMobile ? "90vh" : "85vh",
+      }}
+    >
       <Box
         sx={{
-          p: 2.5,
-          borderBottom: "1px solid",
-          borderColor: "border.main",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
+          display: { xs: "flex", sm: "none" },
+          justifyContent: "center",
+          pt: 1.25,
         }}
       >
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+        <Box
+          sx={{
+            width: 36,
+            height: 4,
+            borderRadius: "2px",
+            bgcolor: "border.light",
+          }}
+        />
+      </Box>
+
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          px: 2.25,
+          py: 1.75,
+          pt: { xs: 1, sm: 1.75 },
+          borderBottom: "1px solid",
+          borderColor: "border.main",
+        }}
+      >
+        <Typography
+          sx={{
+            fontSize: 15,
+            fontWeight: 600,
+            color: "text.primary",
+          }}
+        >
+          Vehicle Details
+        </Typography>
+        <IconButton
+          onClick={onClose}
+          size="small"
+          sx={{
+            width: 32,
+            height: 32,
+            color: "text.secondary",
+            "&:hover": {
+              bgcolor: "surface.secondary",
+            },
+          }}
+        >
+          <X size={18} />
+        </IconButton>
+      </Box>
+
+      <Box
+        sx={{
+          px: 2.25,
+          py: 2.25,
+          overflowY: "auto",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            mb: 2,
+            pb: 2,
+            borderBottom: "1px solid",
+            borderColor: "border.main",
+          }}
+        >
           <Box
             sx={{
               width: 48,
               height: 48,
-              borderRadius: "12px",
-              bgcolor: "surface.light",
+              borderRadius: "10px",
+              bgcolor: "surface.secondary",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 24,
+              fontSize: 22,
+              flexShrink: 0,
             }}
           >
             {iconEmoji}
           </Box>
-          <Box>
-            <Typography sx={{ fontSize: 16, fontWeight: 700, color: "text.primary" }}>
-              {vehicle.makeModel}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography
+              sx={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: "text.primary",
+                mb: 0.5,
+              }}
+            >
+              {currentVehicle.makeModel}
             </Typography>
-            <Typography sx={{ fontSize: 14, color: "text.secondary", fontFamily: "DM Mono, monospace" }}>
-              {vehicle.registrationNumber}
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: "text.disabled",
+                fontFamily: "DM Mono, monospace",
+              }}
+            >
+              {currentVehicle.registrationNumber}
             </Typography>
           </Box>
+          <Chip
+            label={isInsured ? "Insured" : "External"}
+            size="small"
+            sx={{
+              bgcolor: isInsured ? "#EAF3DE" : "#F1EFE8",
+              color: isInsured ? "#3B6D11" : "#6B6963",
+              fontWeight: 600,
+              fontSize: 10,
+              height: "auto",
+              px: 1,
+              py: 0.25,
+            }}
+          />
         </Box>
-        {!isMobile && (
-          <IconButton onClick={onClose} size="small" sx={{ color: "text.secondary" }}>
-            <X size={20} />
-          </IconButton>
+
+        <Box sx={{ mb: 2 }}>
+          <SectionTitle>Vehicle Information</SectionTitle>
+          <DetailRow label="Make" value={make} />
+          <DetailRow label="Model" value={model} />
+          <DetailRow
+            label="Registration Number"
+            value={
+              <Typography
+                sx={{
+                  fontFamily: "DM Mono, monospace",
+                  fontSize: 11,
+                  fontWeight: 500,
+                }}
+              >
+                {currentVehicle.registrationNumber}
+              </Typography>
+            }
+          />
+          <DetailRow
+            label="Vehicle Type"
+            value={currentVehicle.vehicleType === "two-wheeler" ? "Two Wheeler" : "Four Wheeler / Car"}
+          />
+          <DetailRow label="Owner Name" value={currentVehicle.ownerName} />
+        </Box>
+
+        <Box sx={{ mb: 2 }}>
+          <SectionTitle>Insurance Details</SectionTitle>
+          {policy ? (
+            <>
+              <DetailRow label="Insurer" value={policy.insurer} />
+              <DetailRow label="Policy Type" value={policy.type || "Motor Insurance"} />
+              <DetailRow
+                label="Policy Number"
+                value={
+                  <Typography
+                    sx={{
+                      fontFamily: "DM Mono, monospace",
+                      fontSize: 11,
+                      fontWeight: 500,
+                    }}
+                  >
+                    {policy.policyNumber}
+                  </Typography>
+                }
+              />
+              <DetailRow
+                label="Cover Amount (IDV)"
+                value={currentVehicle.idvDisplay || policy.sumInsuredDisplay || `₹${(currentVehicle.idv || policy.sumInsured)?.toLocaleString("en-IN")}`}
+              />
+              <DetailRow
+                label="Annual Premium"
+                value={policy.premiumDisplay || `₹${policy.premiumAnnual?.toLocaleString("en-IN")}`}
+              />
+              <DetailRow label="Renewal Date" value={currentVehicle.renewDateDisplay || policy.renewDateDisplay || "—"} />
+            </>
+          ) : (
+            <>
+              <DetailRow label="Insurer" value={currentVehicle.insurer || "—"} />
+              <DetailRow
+                label="Cover Amount (IDV)"
+                value={currentVehicle.idvDisplay || (currentVehicle.idv ? `₹${currentVehicle.idv.toLocaleString("en-IN")}` : "—")}
+              />
+              <DetailRow label="Renewal Date" value={currentVehicle.renewDateDisplay || currentVehicle.renewDateIso || "—"} />
+            </>
+          )}
+        </Box>
+
+        {policy && (
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: 2,
+              bgcolor: "surface.secondary",
+              border: "1px solid",
+              borderColor: "border.main",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Shield size={16} color="#1456A0" />
+              <Typography sx={{ fontSize: 12, fontWeight: 500, color: "text.primary" }}>
+                Linked Active Policy
+              </Typography>
+            </Box>
+            <Button
+              size="small"
+              onClick={() => setPolicyModalOpen(true)}
+              sx={{
+                fontSize: 11,
+                fontWeight: 600,
+                color: "primary.main",
+                textTransform: "none",
+                p: 0,
+                minWidth: 0,
+              }}
+            >
+              View Policy →
+            </Button>
+          </Box>
         )}
       </Box>
 
-      <Box sx={{ p: 2.5, flex: 1, overflowY: "auto" }}>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <Box>
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "text.secondary", mb: 1.5, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              Vehicle Information
-            </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Make</Typography>
-                <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{make}</Typography>
-              </Box>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Model</Typography>
-                <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{model}</Typography>
-              </Box>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Mfg. Year</Typography>
-                <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>—</Typography>
-              </Box>
-              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Owner Name</Typography>
-                <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{vehicle.ownerName}</Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          <Box>
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "text.secondary", mb: 1.5, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              Insurance Details
-            </Typography>
-            {policy ? (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Insurer</Typography>
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{policy.insurer}</Typography>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Policy Type</Typography>
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{policy.type || "Motor Insurance"}</Typography>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Policy Number</Typography>
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary", fontFamily: "DM Mono, monospace" }}>{policy.policyNumber}</Typography>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Cover Amount</Typography>
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{policy.sumInsuredDisplay || `₹${policy.sumInsured.toLocaleString("en-IN")}`}</Typography>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Annual Premium</Typography>
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{policy.premiumDisplay || `₹${policy.premiumAnnual.toLocaleString("en-IN")}`}</Typography>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography sx={{ fontSize: 14, color: "text.secondary" }}>Deductible</Typography>
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: "text.primary" }}>{policy.deductibleDisplay || "—"}</Typography>
-                </Box>
-              </Box>
-            ) : (
-              <Box sx={{ p: 2, bgcolor: "surface.light", borderRadius: 2 }}>
-                <Typography sx={{ fontSize: 14, color: "text.secondary", textAlign: "center" }}>
-                  No active policy linked to this vehicle.
-                </Typography>
-              </Box>
-            )}
-          </Box>
-
-          <Box>
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: "text.secondary", mb: 1.5, textTransform: "uppercase", letterSpacing: "0.5px" }}>
-              Status & Coverage
-            </Typography>
-            <Box
-              sx={{
-                bgcolor: "surface.light",
-                p: 2,
-                borderRadius: 2,
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-              }}
-            >
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Shield size={16} color={theme.palette.text.secondary} />
-                  <Typography sx={{ fontSize: 14, color: "text.primary", fontWeight: 500 }}>
-                    Motor Insurance
-                  </Typography>
-                </Box>
-                {vehicle.status === "active" || vehicle.status === "insured" ? (
-                  <Chip label="Active" size="small" sx={{ bgcolor: "#EAF3DE", color: "#3B6D11", fontWeight: 600, fontSize: 11 }} />
-                ) : (
-                  <Chip label={`Renews ${vehicle.renewDateDisplay || vehicle.renewDateIso || "—"}`} size="small" sx={{ bgcolor: "#FAEEDA", color: "#854F0B", fontWeight: 600, fontSize: 11 }} />
-                )}
-              </Box>
-              {vehicle.policyId && (
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  size="small"
-                  sx={{ textTransform: "none", borderColor: "border.main", color: "text.primary", borderRadius: 2 }}
-                >
-                  View Policy Details
-                </Button>
-              )}
-            </Box>
-          </Box>
-        </Box>
+      <Box
+        sx={{
+          px: 2.25,
+          py: 1.5,
+          pb: { xs: 2.5, sm: 1.5 },
+          display: "flex",
+          gap: 1,
+          justifyContent: "flex-end",
+          borderTop: "1px solid",
+          borderColor: "border.main",
+        }}
+      >
+        <Button
+          size="small"
+          variant="outlined"
+          fullWidth={isMobile}
+          onClick={onClose}
+          sx={{
+            fontSize: 12,
+            fontWeight: 500,
+            textTransform: "none",
+            minHeight: 36,
+            px: 2.5,
+            py: 1,
+            borderColor: "border.light",
+            color: "text.secondary",
+            "&:hover": {
+              borderColor: "border.light",
+              bgcolor: "surface.secondary",
+            },
+          }}
+        >
+          Close
+        </Button>
       </Box>
 
-      {isMobile && (
-        <Box sx={{ p: 2, borderTop: "1px solid", borderColor: "border.main" }}>
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={onClose}
-            sx={{ textTransform: "none", borderRadius: 2 }}
-          >
-            Close
-          </Button>
-        </Box>
+      {policy && (
+        <PolicyDetailModal
+          policy={policy}
+          open={policyModalOpen}
+          onClose={() => setPolicyModalOpen(false)}
+        />
       )}
     </Box>
   );
@@ -203,39 +385,13 @@ export default function VehicleDetailModal({
         anchor="bottom"
         open={open}
         onClose={onClose}
-        sx={{
-          zIndex: theme.zIndex.modal + 20,
-        }}
+        sx={{ zIndex: (theme) => theme.zIndex.modal + 20 }}
         slotProps={{
-          backdrop: {
-            sx: {
-              bgcolor: "rgba(0, 0, 0, 0.4)",
-              backdropFilter: "blur(2px)",
-            },
-          },
           paper: {
-            sx: {
-              borderTopLeftRadius: 16,
-              borderTopRightRadius: 16,
-              maxHeight: "85vh",
-              bgcolor: "background.paper",
-              display: "flex",
-              flexDirection: "column",
-            },
+            sx: { borderRadius: "16px 16px 0 0" },
           },
         }}
       >
-        <Box
-          sx={{
-            width: 36,
-            height: 4,
-            bgcolor: "border.main",
-            borderRadius: 2,
-            alignSelf: "center",
-            mt: 1.5,
-            mb: 0.5,
-          }}
-        />
         {content}
       </Drawer>
     );
@@ -245,19 +401,13 @@ export default function VehicleDetailModal({
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="xs"
       fullWidth
+      maxWidth="sm"
       slotProps={{
-        backdrop: {
-          sx: {
-            bgcolor: "rgba(0, 0, 0, 0.4)",
-            backdropFilter: "blur(2px)",
-          },
-        },
         paper: {
           sx: {
-            borderRadius: 4,
-            boxShadow: "0px 8px 32px rgba(0, 0, 0, 0.08)",
+            borderRadius: "16px",
+            maxWidth: "460px",
           },
         },
       }}

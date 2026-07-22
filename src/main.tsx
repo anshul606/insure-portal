@@ -8,14 +8,12 @@ import { ThemeProvider } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
 
 import { theme } from "./app/theme";
-import InstallBanner from "./components/InstallBanner";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <App />
-      <InstallBanner />
     </ThemeProvider>
   </React.StrictMode>,
 );

@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import { NavLink } from "react-router-dom";
 import { useMember } from "../contexts/MemberContext";
 import { useAlert } from "../contexts/InsuranceContext";
+import { useBranding } from "../contexts/BrandingContext";
 import { api } from "../services/api";
 import type { Advisor } from "../types/models";
 import {
@@ -100,7 +101,6 @@ function NavItem({ icon, label, to, onClick, color, badge }: NavItemProps) {
   );
 }
 
-
 type SidebarProps = {
   mobileOpen?: boolean;
   onClose?: () => void;
@@ -109,6 +109,7 @@ type SidebarProps = {
 export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const { members, selectedMemberId, setSelectedMemberId } = useMember();
   const { alerts } = useAlert();
+  const { branding, getLogoUrl } = useBranding();
   const unreadCount = alerts.filter((a) => !a.read).length;
   const [showMemberSelect, setShowMemberSelect] = useState(false);
   const [advisor, setAdvisor] = useState<Advisor | null>(null);
@@ -119,7 +120,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
         const data = await api.getAdvisor();
         setAdvisor(data);
       } catch (err) {
-        console.error("Failed to load advisor:", err);
+        console.error(err);
       }
     }
     loadAdvisor();
@@ -130,6 +131,8 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
     setShowMemberSelect(false);
     if (onClose) onClose();
   };
+
+  const squareIconSrc = branding?.squareIconUrl ? getLogoUrl(branding.squareIconUrl) : "";
 
   const content = (
     <Box
@@ -242,7 +245,6 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           />
         </Box>
 
-        {/* Dedicated Advisor Card */}
         {advisor && (
           <Box
             sx={{
@@ -334,7 +336,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                   "&:hover": { bgcolor: "rgba(20,86,160,0.05)" },
                 }}
               >
-                All Members (Sharma Family)
+                All Members
               </Typography>
               {members.map((m) => (
                 <Typography
@@ -418,27 +420,41 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <Box
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: "8px",
-                background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 12,
-              }}
-            >
-              IP
-            </Box>
+            {squareIconSrc ? (
+              <Box
+                component="img"
+                src={squareIconSrc}
+                alt="Broker Logo"
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "8px",
+                  objectFit: "contain",
+                }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "8px",
+                  background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: 12,
+                }}
+              >
+                IP
+              </Box>
+            )}
             <Box sx={{ flex: 1 }}>
               <Typography
                 sx={{ fontSize: 13, fontWeight: 700, color: "text.primary" }}
               >
-                InsurePortal
+                {branding?.name || "InsurePortal"}
               </Typography>
               <Box sx={{ mt: 0.5 }}>
                 <select
@@ -464,7 +480,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                     backgroundPosition: "right 8px center",
                   }}
                 >
-                  <option value="all">Sharma Family (Group)</option>
+                  <option value="all">All Members</option>
                   {members.map((m) => (
                     <option key={m.id} value={m.id}>
                       {m.name}

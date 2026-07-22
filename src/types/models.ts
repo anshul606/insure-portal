@@ -1,8 +1,39 @@
-// ─── Shared / Utility ──────────────────────────────────────────
+export type BrandingData = {
+  orgCode: string;
+  name: string;
+  status: string;
+  loginLogoUrl?: string;
+  squareIconUrl?: string;
+  isDefault: boolean;
+};
+
+export type ChangePasswordRequest = {
+  currentPassword?: string;
+  newPassword?: string;
+};
+
+export type PrefChannels = {
+  email?: boolean;
+  sms?: boolean;
+  whatsapp?: boolean;
+  push?: boolean;
+};
+
+export type PrefCategories = {
+  renewalReminders?: boolean;
+  claimUpdates?: boolean;
+  paymentReminders?: boolean;
+  promotions?: boolean;
+};
+
+export type Preferences = {
+  channels?: PrefChannels;
+  categories?: PrefCategories;
+};
 
 export type KycItem = {
   label: string;
-  status: string; // "verified" | "pending" | "not-added"
+  status: string;
 };
 
 export type MemberProfile = {
@@ -26,14 +57,12 @@ export type Member = {
   isMinor?: boolean;
   profile?: MemberProfile;
   kyc?: KycItem[];
-  // Computed fields returned by the API
+  preferences?: Preferences;
   policyCount?: number;
   totalCoverage?: number;
   totalCoverageDisplay?: string;
   portfolioSummary?: string;
 };
-
-// ─── Policy ────────────────────────────────────────────────────
 
 export type PolicyData = {
   entityType: "policy";
@@ -41,23 +70,21 @@ export type PolicyData = {
   name: string;
   policyNumber: string;
   insurer: string;
-  category?: string;           // health | motor | life | home | travel
+  category?: string;
   isExternal?: boolean;
-  type?: string;               // display label e.g. "Health Insurance"
-  coverageLabel?: string;      // "Sum Insured" | "IDV" | "Sum Assured"
+  type?: string;
+  coverageLabel?: string;
   sumInsured: number;
-  sumInsuredDisplay?: string;  // "₹25,00,000"
+  sumInsuredDisplay?: string;
   premiumAnnual: number;
-  premiumDisplay?: string;     // "₹42,500 / year"
+  premiumDisplay?: string;
   deductibleDisplay?: string;
   memberIds: string[];
-  status: string;              // active | due | upcoming | external | expired
+  status: string;
   renewDateIso?: string;
   renewDateDisplay?: string;
-  renewLabel?: string;         // "Renews:" | "Expires:" | "Active:"
+  renewLabel?: string;
 };
-
-// ─── Claim ─────────────────────────────────────────────────────
 
 export type ClaimData = {
   entityType: "claim";
@@ -70,7 +97,7 @@ export type ClaimData = {
   claimType: string;
   amount: number;
   amountDisplay?: string;
-  status: string;              // doc-requested | under-review | approved | settled
+  status: string;
   statusDisplay?: string;
   filedDateIso?: string;
   filedDateDisplay?: string;
@@ -80,11 +107,9 @@ export type ClaimData = {
   steps?: string[];
 };
 
-// ─── Endorsement ───────────────────────────────────────────────
-
 export type TimelineStep = {
   label: string;
-  state: string;               // done | current | pending
+  state: string;
 };
 
 export type EndorsementData = {
@@ -97,7 +122,7 @@ export type EndorsementData = {
   memberId: string;
   type: string;
   description: string;
-  status: string;              // in-progress | pending | completed | rejected
+  status: string;
   statusDisplay?: string;
   requestedDateIso?: string;
   requestedDateDisplay?: string;
@@ -106,8 +131,6 @@ export type EndorsementData = {
   insurer: string;
   timeline?: TimelineStep[];
 };
-
-// ─── Requirement ───────────────────────────────────────────────
 
 export type QuoteFeature = {
   text: string;
@@ -145,7 +168,7 @@ export type RequirementData = {
   coverage: number;
   coverageDisplay?: string;
   advisor: string;
-  status: string;              // new | quote-shared | policy-issued
+  status: string;
   statusDisplay?: string;
   dateIso?: string;
   dateDisplay?: string;
@@ -155,11 +178,9 @@ export type RequirementData = {
   issuedPolicy?: IssuedPolicy;
 };
 
-// ─── Ticket ────────────────────────────────────────────────────
-
 export type ThreadMessage = {
   from: string;
-  fromRole: string;            // customer | advisor
+  fromRole: string;
   timeDisplay: string;
   message: string;
 };
@@ -171,8 +192,8 @@ export type TicketData = {
   relatedPolicy?: string;
   policyId?: string;
   category: string;
-  priority: string;            // high | normal
-  status: string;              // open | in-progress | resolved
+  priority: string;
+  status: string;
   statusDisplay?: string;
   createdDateIso?: string;
   updatedDateIso?: string;
@@ -180,16 +201,14 @@ export type TicketData = {
   thread?: ThreadMessage[];
 };
 
-// ─── Vehicle ───────────────────────────────────────────────────
-
 export type VehicleData = {
   id: string;
   makeModel: string;
   registrationNumber: string;
   ownerName: string;
   ownerId: string;
-  vehicleType?: string;        // car | two-wheeler
-  status?: string;             // insured | external
+  vehicleType?: string;
+  status?: string;
   policyId?: string;
   insurer?: string;
   idv?: number;
@@ -199,8 +218,6 @@ export type VehicleData = {
   hasDocument?: boolean;
 };
 
-// ─── Document ──────────────────────────────────────────────────
-
 export type DocumentData = {
   id: string;
   name: string;
@@ -208,7 +225,7 @@ export type DocumentData = {
   relatedToLabel?: string;
   memberName?: string;
   memberId?: string;
-  docType?: string;            // policy-doc | claim-doc | receipt | tax-doc
+  docType?: string;
   docTypeDisplay?: string;
   dateIso?: string;
   dateDisplay?: string;
@@ -217,11 +234,9 @@ export type DocumentData = {
   fileName?: string;
 };
 
-// ─── Alert ─────────────────────────────────────────────────────
-
 export type AlertData = {
   id: string;
-  severity: string;            // warn | danger | info | success
+  severity: string;
   title: string;
   message: string;
   relatedToId?: string;
@@ -231,8 +246,6 @@ export type AlertData = {
   actionLabel?: string;
   actionTarget?: string;
 };
-
-// ─── Dashboard ─────────────────────────────────────────────────
 
 export type StatBlock = {
   activePolicies: number;
@@ -258,7 +271,7 @@ export type ActivityItem = {
   title: string;
   subtitle: string;
   timeDisplay: string;
-  kind: string;                // warn | danger | info | success (severity, NOT content type)
+  kind: string;
   dateIso: string;
 };
 
@@ -269,8 +282,6 @@ export type DashboardSummary = {
   annualPremiumOutgo: number;
   annualPremiumOutgoDisplay: string;
 };
-
-// ─── Reference ─────────────────────────────────────────────────
 
 export type Advisor = {
   name: string;
@@ -288,8 +299,6 @@ export type Faq = {
   category?: string;
 };
 
-// ─── Auth ──────────────────────────────────────────────────────
-
 export type LoginResponse = {
   token: string;
   user: {
@@ -299,8 +308,6 @@ export type LoginResponse = {
     memberId: string;
   };
 };
-
-// ─── Union Type ────────────────────────────────────────────────
 
 export type InsuranceEntity =
   | PolicyData

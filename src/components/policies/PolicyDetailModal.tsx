@@ -11,7 +11,7 @@ import { useTheme } from "@mui/material/styles";
 import { Download, X } from "lucide-react";
 import { type ReactNode } from "react";
 import type { PolicyData } from "../../types/models";
-import { getMemberListText } from "../../services/api";
+import { api, getMemberListText } from "../../services/api";
 import { getIconForCategory } from "../../services/iconUtils";
 
 const statusMap: Record<string, { label: string; color: string; bg: string }> = {
@@ -77,13 +77,15 @@ function DetailRow({ label, value }: { label: string; value: ReactNode }) {
   );
 }
 
-type Props = {
+export default function PolicyDetailModal({
+  policy,
+  open,
+  onClose,
+}: {
+  policy: PolicyData | null;
   open: boolean;
   onClose: () => void;
-  policy: PolicyData | null;
-};
-
-export default function PolicyDetailModal({ open, onClose, policy }: Props) {
+}) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [activePolicy, setActivePolicy] = useState<PolicyData | null>(null);
@@ -100,8 +102,18 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
   const isExternal = currentPolicy.isExternal || currentPolicy.status === "external";
   const iconConfig = getIconForCategory(currentPolicy.category, currentPolicy.status);
 
+  const handleDownload = () => {
+    api.downloadCertificate(currentPolicy.id);
+  };
+
   const content = (
-    <Box sx={{ display: "flex", flexDirection: "column", maxHeight: isMobile ? "90vh" : "85vh" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        maxHeight: isMobile ? "90vh" : "85vh",
+      }}
+    >
       <Box
         sx={{
           display: { xs: "flex", sm: "none" },
@@ -140,7 +152,6 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
         >
           Policy Details
         </Typography>
-
         <IconButton
           onClick={onClose}
           size="small"
@@ -150,12 +161,6 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
             color: "text.secondary",
             "&:hover": {
               bgcolor: "surface.secondary",
-            },
-            "&:focus": {
-              outline: "none !important",
-            },
-            "&:focus-visible": {
-              outline: "none !important",
             },
           }}
         >
@@ -228,10 +233,6 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
               height: "auto",
               px: 1,
               py: 0.25,
-              "& .MuiChip-label": {
-                px: 0,
-                py: 0,
-              },
             }}
           />
         </Box>
@@ -260,9 +261,9 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
           <SectionTitle>Coverage Details</SectionTitle>
           <DetailRow
             label={currentPolicy.coverageLabel || "Sum Insured"}
-            value={currentPolicy.sumInsuredDisplay || "—"}
+            value={currentPolicy.sumInsuredDisplay || `₹${currentPolicy.sumInsured?.toLocaleString("en-IN")}`}
           />
-          <DetailRow label="Annual Premium" value={currentPolicy.premiumDisplay || "—"} />
+          <DetailRow label="Annual Premium" value={currentPolicy.premiumDisplay || `₹${currentPolicy.premiumAnnual?.toLocaleString("en-IN")}`} />
           <DetailRow label="Deductible" value={currentPolicy.deductibleDisplay || "N/A"} />
           <DetailRow
             label="Covered Members"
@@ -301,16 +302,6 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
             py: 1,
             borderColor: "border.light",
             color: "text.secondary",
-            "&:hover": {
-              borderColor: "border.light",
-              bgcolor: "surface.secondary",
-            },
-            "&:focus": {
-              outline: "none !important",
-            },
-            "&:focus-visible": {
-              outline: "none !important",
-            },
           }}
         >
           Close
@@ -320,6 +311,7 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
           <Button
             size="small"
             variant="contained"
+            onClick={handleDownload}
             sx={{
               fontSize: 12,
               fontWeight: 500,
@@ -331,11 +323,6 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
               color: "info.main",
               boxShadow: "none",
               border: "1px solid #B5D4F4",
-              "&:hover": {
-                bgcolor: "info.light",
-                opacity: 0.9,
-                boxShadow: "none",
-              },
             }}
             startIcon={<Download size={16} />}
           >
@@ -373,8 +360,8 @@ export default function PolicyDetailModal({ open, onClose, policy }: Props) {
       slotProps={{
         paper: {
           sx: {
-            borderRadius: "12px",
-            maxWidth: "440px",
+            borderRadius: "16px",
+            maxWidth: "460px",
           },
         },
       }}

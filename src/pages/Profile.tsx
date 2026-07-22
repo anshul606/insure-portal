@@ -8,7 +8,7 @@ import PreferencesCard from "../components/profile/PreferencesCard";
 import { useMember } from "../contexts/MemberContext";
 
 export default function ProfilePage() {
-  const { activeMember } = useMember();
+  const { activeMember, refreshMembers } = useMember();
 
   if (!activeMember) return null;
 
@@ -36,12 +36,15 @@ export default function ProfilePage() {
           }}
         >
           <ProfileCard member={activeMember} />
-          <KycCard kycItems={activeMember.kyc ?? []} />
+          <KycCard
+            memberId={activeMember.id}
+            kycItems={activeMember.kyc ?? []}
+            onKycUpdated={refreshMembers}
+          />
         </Box>
 
-        <PreferencesCard />
+        <PreferencesCard memberId={activeMember.id} />
       </Box>
     </AppLayout>
   );
 }
-

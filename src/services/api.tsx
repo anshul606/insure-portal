@@ -1,4 +1,4 @@
-import { apiClient } from "./apiClient";
+import { apiClient, downloadFile } from "./apiClient";
 import type {
   Member,
   PolicyData,
@@ -14,10 +14,11 @@ import type {
   Advisor,
   Faq,
   InsuranceEntity,
+  BrandingData,
+  ChangePasswordRequest,
+  Preferences,
 } from "../types/models";
 
-// ─── Helper: member display text ───────────────────────────────
-// These work with a cached member list that gets populated on first load.
 let cachedMembers: Member[] = [];
 
 export function setCachedMembers(members: Member[]) {
@@ -25,6 +26,7 @@ export function setCachedMembers(members: Member[]) {
 }
 
 export const getMemberDisplayText = (memberIds: string[]): string => {
+  if (!memberIds || memberIds.length === 0) return "—";
   const memberNames = memberIds.map((id) => {
     const member = cachedMembers.find((m) => m.id === id);
     return member ? member.name.split(" ")[0] : id;
@@ -42,6 +44,7 @@ export const getMemberDisplayText = (memberIds: string[]): string => {
 };
 
 export const getMemberListText = (memberIds: string[]): string => {
+  if (!memberIds || memberIds.length === 0) return "—";
   const memberNames = memberIds.map((id) => {
     const member = cachedMembers.find((m) => m.id === id);
     return member ? member.name.split(" ")[0] : id;
@@ -49,23 +52,41 @@ export const getMemberListText = (memberIds: string[]): string => {
   return memberNames.join(", ");
 };
 
-// ─── Query param types ─────────────────────────────────────────
-
 type ListParams = Record<string, string | number | boolean | undefined>;
 
-// ─── API ───────────────────────────────────────────────────────
-
 export const api = {
-  // ── Auth ─────────────────────────────────────────────────────
-  login: async (username: string, password: string): Promise<LoginResponse> => {
+  getBranding: async (orgCode: string): Promise<BrandingData> => {
+    try {
+      const res = await apiClient.get<BrandingData>(`/api/branding/${orgCode}`);
+      return res.data;
+    } catch {
+      const fallback = await apiClient.get<BrandingData>("/api/branding/unknown");
+      return fallback.data;
+    }
+  },
+
+  login: async (orgCode: string, loginId: string, password: string): Promise<LoginResponse> => {
     const res = await apiClient.post<LoginResponse>("/api/auth/login", {
-      username,
+      orgCode,
+      loginId,
       password,
     });
     return res.data;
   },
 
-  // ── Members ──────────────────────────────────────────────────
+  logout: async (): Promise<void> => {
+    await apiClient.post("/api/auth/logout");
+  },
+
+  getMe: async (): Promise<LoginResponse["user"]> => {
+    const res = await apiClient.get<LoginResponse["user"]>("/api/auth/me");
+    return res.data;
+  },
+
+  changePassword: async (req: ChangePasswordRequest): Promise<void> => {
+    await apiClient.post("/api/auth/change-password", req);
+  },
+
   getMembers: async (): Promise<Member[]> => {
     const res = await apiClient.get<Member[]>("/api/members");
     return res.data;
@@ -86,11 +107,30 @@ export const api = {
     return res.data;
   },
 
+  updateMemberKyc: async (id: string, patch: { status: string }): Promise<Member> => {
+    try {
+      const res = await apiClient.patch<Member>(`/api/members/${id}`, { status: patch.status });
+      return res.data;
+    } catch {
+      const res = await apiClient.patch<Member>(`/api/members/${id}`, patch);
+      return res.data;
+    }
+  },
+
+  getMemberPreferences: async (id: string): Promise<Preferences> => {
+    const res = await apiClient.get<Preferences>(`/api/members/${id}/preferences`);
+    return res.data;
+  },
+
+  updateMemberPreferences: async (id: string, prefs: Preferences): Promise<Preferences> => {
+    const res = await apiClient.put<Preferences>(`/api/members/${id}/preferences`, prefs);
+    return res.data;
+  },
+
   deleteMember: async (id: string): Promise<void> => {
     await apiClient.del(`/api/members/${id}`);
   },
 
-  // ── Policies ─────────────────────────────────────────────────
   getPolicies: async (params?: ListParams): Promise<PolicyData[]> => {
     const res = await apiClient.get<PolicyData[]>("/api/policies", params);
     return res.data;
@@ -106,7 +146,15 @@ export const api = {
     return res.data;
   },
 
-  // ── Claims ───────────────────────────────────────────────────
+  updatePolicy: async (id: string, data: Partial<PolicyData>): Promise<PolicyData> => {
+    const res = await apiClient.put<PolicyData>(`/api/policies/${id}`, data);
+    return res.data;
+  },
+
+  downloadCertificate: async (id: string): Promise<void> => {
+    await downloadFile(`/api/policies/${id}/certificate`, `policy-certificate-${id}.pdf`);
+  },
+
   getClaims: async (params?: ListParams): Promise<ClaimData[]> => {
     const res = await apiClient.get<ClaimData[]>("/api/claims", params);
     return res.data;
@@ -136,7 +184,6 @@ export const api = {
     await apiClient.del(`/api/claims/${id}`);
   },
 
-  // ── Endorsements ─────────────────────────────────────────────
   getEndorsements: async (params?: ListParams): Promise<EndorsementData[]> => {
     const res = await apiClient.get<EndorsementData[]>("/api/endorsements", params);
     return res.data;
@@ -166,7 +213,6 @@ export const api = {
     await apiClient.del(`/api/endorsements/${id}`);
   },
 
-  // ── Requirements ─────────────────────────────────────────────
   getRequirements: async (params?: ListParams): Promise<RequirementData[]> => {
     const res = await apiClient.get<RequirementData[]>("/api/requirements", params);
     return res.data;
@@ -194,7 +240,6 @@ export const api = {
     await apiClient.del(`/api/requirements/${id}`);
   },
 
-  // ── Tickets ──────────────────────────────────────────────────
   getTickets: async (params?: ListParams): Promise<TicketData[]> => {
     const res = await apiClient.get<TicketData[]>("/api/tickets", params);
     return res.data;
@@ -224,7 +269,6 @@ export const api = {
     await apiClient.del(`/api/tickets/${id}`);
   },
 
-  // ── Documents ────────────────────────────────────────────────
   getDocuments: async (params?: ListParams): Promise<DocumentData[]> => {
     const res = await apiClient.get<DocumentData[]>("/api/documents", params);
     return res.data;
@@ -240,11 +284,14 @@ export const api = {
     return res.data;
   },
 
+  downloadDocument: async (id: string): Promise<void> => {
+    await downloadFile(`/api/documents/${id}/download`, `document-${id}.pdf`);
+  },
+
   deleteDocument: async (id: string): Promise<void> => {
     await apiClient.del(`/api/documents/${id}`);
   },
 
-  // ── Vehicles ─────────────────────────────────────────────────
   getVehicles: async (params?: ListParams): Promise<VehicleData[]> => {
     const res = await apiClient.get<VehicleData[]>("/api/vehicles", params);
     return res.data;
@@ -252,6 +299,11 @@ export const api = {
 
   getVehicleById: async (id: string): Promise<VehicleData> => {
     const res = await apiClient.get<VehicleData>(`/api/vehicles/${id}`);
+    return res.data;
+  },
+
+  getVehiclePolicy: async (id: string): Promise<PolicyData> => {
+    const res = await apiClient.get<PolicyData>(`/api/vehicles/${id}/policy`);
     return res.data;
   },
 
@@ -269,7 +321,6 @@ export const api = {
     await apiClient.del(`/api/vehicles/${id}`);
   },
 
-  // ── Alerts ───────────────────────────────────────────────────
   getAlerts: async (): Promise<AlertData[]> => {
     const res = await apiClient.get<AlertData[]>("/api/alerts");
     return res.data;
@@ -284,14 +335,12 @@ export const api = {
     await apiClient.post("/api/alerts/mark-all-read");
   },
 
-  // ── Dashboard ────────────────────────────────────────────────
   getDashboardSummary: async (memberId?: string): Promise<DashboardSummary> => {
     const params = memberId ? { memberId } : undefined;
     const res = await apiClient.get<DashboardSummary>("/api/dashboard/summary", params);
     return res.data;
   },
 
-  // ── Reference ────────────────────────────────────────────────
   getAdvisor: async (): Promise<Advisor> => {
     const res = await apiClient.get<Advisor>("/api/advisor");
     return res.data;

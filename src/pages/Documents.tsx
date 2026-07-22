@@ -45,7 +45,7 @@ const getDocTypeStyles = (type: string) => {
         bg: "#F1EFE8"
       };
     case "tax-doc":
-      default:
+    default:
       return {
         icon: <PieChart size={20} color="#3B6D11" />,
         color: "#3B6D11",
@@ -81,7 +81,7 @@ export default function DocumentsPage() {
           setDocuments(data);
         }
       } catch (err) {
-        console.error("Failed to fetch documents:", err);
+        console.error(err);
       } finally {
         if (active) {
           setLoading(false);
@@ -95,7 +95,7 @@ export default function DocumentsPage() {
   }, [selectedMemberId, selectedDocType]);
 
   const handleDownload = (doc: DocumentData) => {
-    alert(`Downloading: ${doc.name} (${doc.fileName || "document.pdf"})`);
+    api.downloadDocument(doc.id);
   };
 
   return (
@@ -214,6 +214,7 @@ export default function DocumentsPage() {
                       {doc.name}
                     </Typography>
                     <Typography
+                      component="div"
                       sx={{
                         fontSize: 11,
                         color: "text.secondary",

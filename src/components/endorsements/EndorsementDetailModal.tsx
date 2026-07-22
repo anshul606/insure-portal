@@ -408,8 +408,8 @@ export default function EndorsementDetailModal({ open, onClose, endorsement }: P
       slotProps={{
         paper: {
           sx: {
-            borderRadius: "12px",
-            maxWidth: "440px",
+            borderRadius: "16px",
+            maxWidth: "460px",
           },
         },
       }}

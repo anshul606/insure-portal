@@ -2,31 +2,53 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
-import React, { useState } from "react";
+import Chip from "@mui/material/Chip";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Eye, EyeOff } from "lucide-react";
+import { User, Eye, EyeOff, Building2 } from "lucide-react";
 import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import Alert from "@mui/material/Alert";
 import { api } from "../services/api";
+import { useBranding } from "../contexts/BrandingContext";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { orgCode, setOrgCode, branding, getLogoUrl } = useBranding();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [currentOrg, setCurrentOrg] = useState(orgCode);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCurrentOrg(orgCode);
+  }, [orgCode]);
+
+  const handleOrgChange = (newOrg: string) => {
+    setCurrentOrg(newOrg);
+    setOrgCode(newOrg);
+  };
+
+  const handleQuickCredential = (org: string, user: string, pass: string) => {
+    handleOrgChange(org);
+    setUsername(user);
+    setPassword(pass);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
+    const targetOrg = currentOrg.trim() || orgCode;
+
     try {
-      const result = await api.login(username, password);
+      const result = await api.login(targetOrg, username, password);
       localStorage.setItem("token", result.token);
       localStorage.setItem("user", JSON.stringify(result.user));
+      localStorage.setItem("portal_org_code", targetOrg);
       navigate("/dashboard");
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
@@ -34,6 +56,7 @@ export default function LoginPage() {
     }
   };
 
+  const logoSrc = branding?.loginLogoUrl ? getLogoUrl(branding.loginLogoUrl) : "";
 
   return (
     <Box
@@ -47,29 +70,44 @@ export default function LoginPage() {
         p: 2,
       }}
     >
-      <Box
-        sx={{
-          width: 68,
-          height: 68,
-          borderRadius: "16px",
-          background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "#fff",
-          fontWeight: 700,
-          fontSize: 24,
-          boxShadow: "0 6px 20px rgba(79,70,229,0.25)",
-          mb: 1.5,
-        }}
-      >
-        IP
-      </Box>
-      <Typography variant="h5" sx={{ fontWeight: 700, color: "text.primary", mb: 0.5 }}>
-        InsurePortal
+      {logoSrc ? (
+        <Box
+          component="img"
+          src={logoSrc}
+          alt={branding?.name || "Broker Logo"}
+          sx={{
+            maxHeight: 64,
+            maxWidth: 240,
+            objectFit: "contain",
+            mb: 1.5,
+          }}
+        />
+      ) : (
+        <Box
+          sx={{
+            width: 68,
+            height: 68,
+            borderRadius: "16px",
+            background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: 24,
+            boxShadow: "0 6px 20px rgba(79,70,229,0.25)",
+            mb: 1.5,
+          }}
+        >
+          {orgCode ? orgCode.substring(0, 2).toUpperCase() : "IP"}
+        </Box>
+      )}
+
+      <Typography variant="h5" sx={{ fontWeight: 700, color: "text.primary", mb: 0.5, textAlign: "center" }}>
+        {branding?.name || "InsurePortal"}
       </Typography>
-      <Typography sx={{ fontSize: 13, color: "text.secondary", mb: 4, textAlign: "center" }}>
-        Your Insurance Portfolio — Preferred Choice Insurance Agency
+      <Typography sx={{ fontSize: 13, color: "text.secondary", mb: 3, textAlign: "center" }}>
+        Your Insurance Portfolio Client Portal
       </Typography>
 
       <Box
@@ -86,7 +124,7 @@ export default function LoginPage() {
           boxShadow: "0 4px 24px rgba(0,0,0,0.04)",
         }}
       >
-        <Typography sx={{ fontSize: 16, fontWeight: 600, color: "text.primary", mb: 3, textAlign: "center", letterSpacing: "0.01em" }}>
+        <Typography sx={{ fontSize: 16, fontWeight: 600, color: "text.primary", mb: 2.5, textAlign: "center", letterSpacing: "0.01em" }}>
           Client Login
         </Typography>
 
@@ -96,10 +134,49 @@ export default function LoginPage() {
           </Alert>
         )}
 
+        <Box sx={{ mb: 2 }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 600, color: "text.secondary", mb: 0.75 }}>
+            Organization Code (Broker Subdomain)
+          </Typography>
+          <TextField
+            fullWidth
+            placeholder="e.g. marsh, abibl"
+            variant="outlined"
+            size="small"
+            required
+            value={currentOrg}
+            onChange={(e) => handleOrgChange(e.target.value)}
+            slotProps={{
+              input: {
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Building2 size={18} color="#A8A49E" />
+                  </InputAdornment>
+                ),
+                sx: { borderRadius: 2, bgcolor: "background.default" }
+              }
+            }}
+          />
+          <Box sx={{ display: "flex", gap: 1, mt: 1, alignItems: "center" }}>
+            <Typography sx={{ fontSize: 11, color: "text.disabled" }}>Quick test:</Typography>
+            <Chip
+              label="marsh (rajesh)"
+              size="small"
+              onClick={() => handleQuickCredential("marsh", "rajesh", "Marsh@123")}
+              sx={{ fontSize: 10, height: 22, cursor: "pointer" }}
+            />
+            <Chip
+              label="abibl (arjun)"
+              size="small"
+              onClick={() => handleQuickCredential("abibl", "arjun", "Abibl@123")}
+              sx={{ fontSize: 10, height: 22, cursor: "pointer" }}
+            />
+          </Box>
+        </Box>
 
         <Box sx={{ mb: 2 }}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: "text.secondary", mb: 1 }}>
-            Username / Mobile Number
+          <Typography sx={{ fontSize: 12, fontWeight: 600, color: "text.secondary", mb: 0.75 }}>
+            Username / Login ID
           </Typography>
           <TextField
             fullWidth
@@ -122,8 +199,8 @@ export default function LoginPage() {
           />
         </Box>
 
-        <Box sx={{ mb: 1 }}>
-          <Typography sx={{ fontSize: 12, fontWeight: 600, color: "text.secondary", mb: 1 }}>
+        <Box sx={{ mb: 2 }}>
+          <Typography sx={{ fontSize: 12, fontWeight: 600, color: "text.secondary", mb: 0.75 }}>
             Password
           </Typography>
           <TextField
@@ -148,13 +225,6 @@ export default function LoginPage() {
               }
             }}
           />
-
-        </Box>
-
-        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 3 }}>
-          <Typography sx={{ fontSize: 12, color: "primary.main", cursor: "pointer", "&:hover": { textDecoration: "underline" } }}>
-            Reset Password
-          </Typography>
         </Box>
 
         <Button
@@ -169,6 +239,7 @@ export default function LoginPage() {
             fontWeight: 600,
             textTransform: "none",
             boxShadow: "none",
+            mt: 1,
             "&:hover": { boxShadow: "none" }
           }}
         >
@@ -177,7 +248,7 @@ export default function LoginPage() {
 
         <Typography sx={{ fontSize: 11, color: "text.disabled", textAlign: "center", mt: 3, lineHeight: 1.6 }}>
           Secured by 256-bit SSL encryption<br />
-          Powered by LeadCRM
+          Powered by LeadCRM Multi-Tenant Portal
         </Typography>
       </Box>
     </Box>

@@ -427,8 +427,8 @@ export default function QuoteModal({
       slotProps={{
         paper: {
           sx: {
-            borderRadius: "12px",
-            maxWidth: "440px",
+            borderRadius: "16px",
+            maxWidth: "460px",
           },
         },
       }}

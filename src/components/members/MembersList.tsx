@@ -66,6 +66,7 @@ export default function MembersList() {
                 </Box>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography
+                    component="div"
                     sx={{
                       fontSize: 15,
                       fontWeight: 600,
@@ -207,7 +208,7 @@ export default function MembersList() {
                       {member.initials || member.name.charAt(0)}
                     </Box>
                     <Box>
-                      <Typography sx={{ fontSize: 14, fontWeight: 600, color: "text.primary", display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography component="div" sx={{ fontSize: 14, fontWeight: 600, color: "text.primary", display: "flex", alignItems: "center", gap: 1 }}>
                         {member.name}
                         {member.relationship && (
                           <Chip

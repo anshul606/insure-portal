@@ -13,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import PopoverMenu from "./PopoverMenu";
 import { useMember } from "../contexts/MemberContext";
 import { useAlert } from "../contexts/InsuranceContext";
+import { useBranding } from "../contexts/BrandingContext";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -21,7 +22,13 @@ export default function Header() {
 
   const { members, selectedMemberId, setSelectedMemberId, activeMember } = useMember();
   const { alerts } = useAlert();
+  const { branding, getLogoUrl } = useBranding();
   const unreadCount = alerts.filter((a) => !a.read).length;
+
+  const storedUserRaw = typeof localStorage !== "undefined" ? localStorage.getItem("user") : null;
+  const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
+  const userName = storedUser?.name || "Client";
+  const userInitials = userName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() || "CL";
 
   const handleGroupClick = (event: React.MouseEvent<HTMLElement>) => setGroupAnchorEl(event.currentTarget);
   const handleGroupClose = () => setGroupAnchorEl(null);
@@ -33,6 +40,16 @@ export default function Header() {
     setSelectedMemberId(id);
     handleGroupClose();
   };
+
+  const handleLogout = () => {
+    handleProfileClose();
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("selectedMemberId");
+    navigate("/");
+  };
+
+  const squareIconSrc = branding?.squareIconUrl ? getLogoUrl(branding.squareIconUrl) : "";
 
   return (
     <>
@@ -56,33 +73,48 @@ export default function Header() {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            <Box
-              sx={{
-                display: "flex",
-                width: 38,
-                height: 38,
-                borderRadius: "10px",
-                background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 14,
-                boxShadow: "0 6px 18px rgba(79,70,229,0.25)",
-              }}
-            >
-              IP
-            </Box>
+            {squareIconSrc ? (
+              <Box
+                component="img"
+                src={squareIconSrc}
+                alt="Broker Logo"
+                sx={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: "10px",
+                  objectFit: "contain",
+                }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  display: "flex",
+                  width: 38,
+                  height: 38,
+                  borderRadius: "10px",
+                  background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#fff",
+                  fontWeight: 700,
+                  fontSize: 14,
+                  boxShadow: "0 6px 18px rgba(79,70,229,0.25)",
+                }}
+              >
+                IP
+              </Box>
+            )}
 
             <Typography
               variant="h6"
               sx={{
                 fontWeight: 700,
                 letterSpacing: "-0.03em",
-                fontSize: { xs: 18, md: 20 },
+                fontSize: { xs: 16, md: 18 },
+                color: "text.primary",
               }}
             >
-              InsurePortal
+              {branding?.name || "InsurePortal"}
             </Typography>
           </Box>
 
@@ -105,7 +137,7 @@ export default function Header() {
             >
               <RefreshCcw size={14} color="#6B6963" />
               <Typography sx={{ fontSize: 12, fontWeight: 500, color: "text.secondary" }}>
-                {activeMember?.id === "all" ? "Sharma Family" : activeMember?.name}
+                {activeMember?.id === "all" ? "All Family Members" : activeMember?.name}
               </Typography>
               <ChevronDown size={14} color="#6B6963" />
             </Box>
@@ -139,7 +171,7 @@ export default function Header() {
                 cursor: "pointer",
               }}
             >
-              RS
+              {userInitials}
             </Avatar>
           </Box>
         </Toolbar>
@@ -188,14 +220,14 @@ export default function Header() {
 
       <PopoverMenu anchorEl={profileAnchorEl} open={Boolean(profileAnchorEl)} onClose={handleProfileClose} width={200}>
         <Box sx={{ px: 1.5, py: 1, mb: 0.5 }}>
-          <Typography sx={{ fontSize: 14, fontWeight: 600, color: "text.primary" }}>Rajesh Sharma</Typography>
-          <Typography sx={{ fontSize: 12, color: "text.secondary" }}>rajesh@example.com</Typography>
+          <Typography sx={{ fontSize: 14, fontWeight: 600, color: "text.primary" }}>{userName}</Typography>
+          <Typography sx={{ fontSize: 11, color: "text.secondary" }}>{storedUser?.clientId || ""}</Typography>
         </Box>
         <Divider sx={{ my: 0.5 }} />
         <MenuItem onClick={() => { handleProfileClose(); navigate("/profile"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1 }}>Profile settings</MenuItem>
         <MenuItem onClick={() => { handleProfileClose(); navigate("/tickets"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1 }}>Help & Support</MenuItem>
         <Divider sx={{ my: 0.5 }} />
-        <MenuItem onClick={() => { handleProfileClose(); localStorage.removeItem("token"); localStorage.removeItem("user"); localStorage.removeItem("selectedMemberId"); navigate("/"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1, color: "error.main" }}>Logout</MenuItem>
+        <MenuItem onClick={handleLogout} sx={{ borderRadius: 1.5, fontSize: 13, py: 1, color: "error.main" }}>Logout</MenuItem>
       </PopoverMenu>
     </>
   );

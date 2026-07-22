@@ -3,7 +3,8 @@ import Typography from "@mui/material/Typography";
 import Chip from "@mui/material/Chip";
 import Button from "@mui/material/Button";
 import { Download } from "lucide-react";
-import { getMemberDisplayText } from "../../services/api";
+import { useNavigate } from "react-router-dom";
+import { api, getMemberDisplayText } from "../../services/api";
 import { getIconForCategory, getCoverageText } from "../../services/iconUtils";
 import type { PolicyData } from "../../types/models";
 
@@ -22,10 +23,21 @@ export default function PolicyCard({
   policy: PolicyData;
   onClick?: () => void;
 }) {
+  const navigate = useNavigate();
   const st = statusMap[policy.status] ?? statusMap.active;
   const isExternal = policy.isExternal || policy.status === "external";
   const iconConfig = getIconForCategory(policy.category, policy.status);
   const coverageText = getCoverageText(policy.category, policy.sumInsured);
+
+  const handleRenew = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate(`/requirements?new=true&policyId=${policy.id}`);
+  };
+
+  const handleDownloadCertificate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    api.downloadCertificate(policy.id);
+  };
 
   return (
     <Box
@@ -151,7 +163,7 @@ export default function PolicyCard({
             <Button
               size="small"
               variant="contained"
-              onClick={(e) => e.stopPropagation()}
+              onClick={handleRenew}
               sx={{
                 bgcolor: "primary.main",
                 color: "#fff",
@@ -171,7 +183,7 @@ export default function PolicyCard({
             <Button
               size="small"
               variant="contained"
-              onClick={(e) => e.stopPropagation()}
+              onClick={handleRenew}
               sx={{
                 bgcolor: "primary.main",
                 color: "#fff",
@@ -192,7 +204,7 @@ export default function PolicyCard({
               <Button
                 size="small"
                 startIcon={<Download size={12} />}
-                onClick={(e) => e.stopPropagation()}
+                onClick={handleDownloadCertificate}
                 sx={{
                   fontSize: 11,
                   fontWeight: 500,
@@ -210,7 +222,7 @@ export default function PolicyCard({
               </Button>
               <Button
                 size="small"
-                onClick={(e) => e.stopPropagation()}
+                onClick={onClick}
                 sx={{
                   fontSize: 11,
                   fontWeight: 500,

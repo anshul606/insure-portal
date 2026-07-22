@@ -253,7 +253,20 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
   }
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: 3 } } }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: "16px",
+            maxWidth: "460px",
+          },
+        },
+      }}
+    >
       {content}
     </Dialog>
   );
