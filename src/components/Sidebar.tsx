@@ -438,16 +438,14 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
                   width: 32,
                   height: 32,
                   borderRadius: "8px",
-                  background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
+                  background: "linear-gradient(135deg, #1456A0 0%, #4F46E5 100%)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   color: "#fff",
-                  fontWeight: 700,
-                  fontSize: 12,
                 }}
               >
-                IP
+                <Shield size={16} />
               </Box>
             )}
             <Box sx={{ flex: 1 }}>

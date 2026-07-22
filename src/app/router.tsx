@@ -15,17 +15,17 @@ import AlertsPage from "../pages/Alerts.tsx";
 import ProfilePage from "../pages/Profile.tsx";
 import NotFoundPage from "../pages/NotFound.tsx";
 
+import { hasValidToken } from "../services/apiClient.ts";
+
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const token = localStorage.getItem("token");
-  if (!token) {
+  if (!hasValidToken()) {
     return <Navigate to="/" replace />;
   }
   return <>{children}</>;
 }
 
 function PublicRoute({ children }: { children: React.ReactNode }) {
-  const token = localStorage.getItem("token");
-  if (token) {
+  if (hasValidToken()) {
     return <Navigate to="/dashboard" replace />;
   }
   return <>{children}</>;

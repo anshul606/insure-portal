@@ -22,6 +22,7 @@ import UiCard from "../components/shared/UiCard";
 import TableSkeleton from "../components/shared/TableSkeleton";
 import { useMember } from "../contexts/MemberContext";
 import { api } from "../services/api";
+import { hasValidToken } from "../services/apiClient";
 import type { DocumentData } from "../types/models";
 
 const getDocTypeStyles = (type: string) => {
@@ -67,6 +68,10 @@ export default function DocumentsPage() {
   useEffect(() => {
     let active = true;
     async function fetchDocs() {
+      if (!hasValidToken()) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const params: Record<string, any> = {};
@@ -80,8 +85,10 @@ export default function DocumentsPage() {
         if (active) {
           setDocuments(data);
         }
-      } catch (err) {
-        console.error(err);
+      } catch (err: any) {
+        if (err?.status !== 401) {
+          console.error(err);
+        }
       } finally {
         if (active) {
           setLoading(false);

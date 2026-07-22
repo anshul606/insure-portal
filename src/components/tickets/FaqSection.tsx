@@ -11,6 +11,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { ChevronDown, Search } from "lucide-react";
 import UiCard from "../shared/UiCard";
 import { api } from "../../services/api";
+import { hasValidToken } from "../../services/apiClient";
 import type { Faq } from "../../types/models";
 
 const CATEGORIES = ["All", "Policies", "Claims", "Endorsements", "Tax", "App"];
@@ -23,12 +24,18 @@ export default function FaqSection() {
 
   useEffect(() => {
     async function loadFaqs() {
+      if (!hasValidToken()) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const data = await api.getFaqs();
         setFaqs(data);
-      } catch (err) {
-        console.error("Failed to load FAQs:", err);
+      } catch (err: any) {
+        if (err?.status !== 401) {
+          console.error("Failed to load FAQs:", err);
+        }
       } finally {
         setLoading(false);
       }

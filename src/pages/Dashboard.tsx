@@ -12,6 +12,7 @@ import CoverageSummary from "../components/dashboard/CoverageSummary";
 import RecentActivity from "../components/dashboard/RecentActivity";
 import { useMember } from "../contexts/MemberContext";
 import { api } from "../services/api";
+import { hasValidToken } from "../services/apiClient";
 import type { DashboardSummary, AlertData } from "../types/models";
 
 export default function DashboardPage() {
@@ -24,6 +25,10 @@ export default function DashboardPage() {
   useEffect(() => {
     let active = true;
     async function loadData() {
+      if (!hasValidToken()) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const memberIdParam = selectedMemberId === "all" ? undefined : selectedMemberId;
@@ -35,8 +40,10 @@ export default function DashboardPage() {
           setSummary(sumData);
           setAlerts(alertData);
         }
-      } catch (err) {
-        console.error("Failed to load dashboard data:", err);
+      } catch (err: any) {
+        if (err?.status !== 401) {
+          console.error("Failed to load dashboard data:", err);
+        }
       } finally {
         if (active) {
           setLoading(false);

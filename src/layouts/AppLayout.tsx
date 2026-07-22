@@ -1,11 +1,13 @@
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import BottomNav from "../components/BottomNav";
 import { useInsurance } from "../contexts/InsuranceContext";
+import { useMember } from "../contexts/MemberContext";
+import { hasValidToken } from "../services/apiClient";
 
 type AppLayoutProps = {
   children: React.ReactNode;
@@ -13,7 +15,19 @@ type AppLayoutProps = {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const { error, refreshAll } = useInsurance();
+  const { members, refreshMembers } = useMember();
+  const { error, refreshAll, policies } = useInsurance();
+
+  useEffect(() => {
+    if (hasValidToken()) {
+      if (members.length === 0) {
+        refreshMembers();
+      }
+      if (policies.length === 0) {
+        refreshAll();
+      }
+    }
+  }, []);
 
   const handleDrawerToggle = () => {
     setMobileDrawerOpen(!mobileDrawerOpen);

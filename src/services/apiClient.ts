@@ -34,9 +34,20 @@ class ApiError extends Error {
   }
 }
 
+export function hasValidToken(): boolean {
+  const token = localStorage.getItem("token");
+  return Boolean(token && token !== "undefined" && token !== "null" && token.trim().length > 0);
+}
+
+let isRedirectingToLogin = false;
+
+export function resetRedirectGuard() {
+  isRedirectingToLogin = false;
+}
+
 function getAuthHeaders(): Record<string, string> {
   const token = localStorage.getItem("token");
-  if (token) {
+  if (token && token !== "undefined" && token !== "null" && token.trim().length > 0) {
     return { Authorization: `Bearer ${token}` };
   }
   return {};
@@ -124,7 +135,8 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       localStorage.removeItem("selectedMemberId");
-      if (window.location.pathname !== "/") {
+      if (window.location.pathname !== "/" && !isRedirectingToLogin) {
+        isRedirectingToLogin = true;
         window.location.href = "/";
       }
     }

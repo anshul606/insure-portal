@@ -7,7 +7,7 @@ import Typography from "@mui/material/Typography";
 import MenuItem from "@mui/material/MenuItem";
 import Badge from "@mui/material/Badge";
 import Divider from "@mui/material/Divider";
-import { Bell, RefreshCcw, ChevronDown } from "lucide-react";
+import { Bell, RefreshCcw, ChevronDown, Shield } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PopoverMenu from "./PopoverMenu";
@@ -92,16 +92,14 @@ export default function Header() {
                   width: 38,
                   height: 38,
                   borderRadius: "10px",
-                  background: "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)",
+                  background: "linear-gradient(135deg, #1456A0 0%, #4F46E5 100%)",
                   alignItems: "center",
                   justifyContent: "center",
                   color: "#fff",
-                  fontWeight: 700,
-                  fontSize: 14,
-                  boxShadow: "0 6px 18px rgba(79,70,229,0.25)",
+                  boxShadow: "0 4px 14px rgba(20,86,160,0.25)",
                 }}
               >
-                IP
+                <Shield size={20} />
               </Box>
             )}
 

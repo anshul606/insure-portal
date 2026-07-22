@@ -7,6 +7,7 @@ import {
 } from "react";
 import type { Member, MemberProfile } from "../types/models";
 import { api, setCachedMembers } from "../services/api";
+import { hasValidToken } from "../services/apiClient";
 
 type MemberContextType = {
   members: Member[];
@@ -34,12 +35,19 @@ export function MemberProvider({ children }: { children: ReactNode }) {
   };
 
   const refreshMembers = async () => {
+    if (!hasValidToken()) {
+      setMembers([]);
+      setLoading(false);
+      return;
+    }
     try {
       const data = await api.getMembers();
       setMembers(data);
       setCachedMembers(data);
-    } catch (err) {
-      console.error("Failed to load members:", err);
+    } catch (err: any) {
+      if (err?.status !== 401) {
+        console.error("Failed to load members:", err);
+      }
     }
   };
 

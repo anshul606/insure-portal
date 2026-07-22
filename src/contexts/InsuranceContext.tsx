@@ -17,6 +17,7 @@ import type {
   InsuranceEntity,
 } from "../types/models";
 import { api } from "../services/api";
+import { hasValidToken } from "../services/apiClient";
 import { useMember } from "./MemberContext";
 
 export const claimStatusMap: Record<string, { label: string; color: string; bg: string }> = {
@@ -115,81 +116,106 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   const refreshPolicies = useCallback(async () => {
+    if (!hasValidToken()) return;
     try {
       const params = selectedMemberId === "all" ? {} : { memberIds: selectedMemberId };
       const data = await api.getPolicies(params);
       setPolicies(data);
-    } catch (err) {
-      console.error("Failed to load policies:", err);
+    } catch (err: any) {
+      if (err?.status !== 401) {
+        console.error("Failed to load policies:", err);
+      }
       throw err;
     }
   }, [selectedMemberId]);
 
   const refreshClaims = useCallback(async () => {
+    if (!hasValidToken()) return;
     try {
       const params = selectedMemberId === "all" ? {} : { memberId: selectedMemberId };
       const data = await api.getClaims(params);
       setClaims(data);
-    } catch (err) {
-      console.error("Failed to load claims:", err);
+    } catch (err: any) {
+      if (err?.status !== 401) {
+        console.error("Failed to load claims:", err);
+      }
       throw err;
     }
   }, [selectedMemberId]);
 
   const refreshEndorsements = useCallback(async () => {
+    if (!hasValidToken()) return;
     try {
       const params = selectedMemberId === "all" ? {} : { memberId: selectedMemberId };
       const data = await api.getEndorsements(params);
       setEndorsements(data);
-    } catch (err) {
-      console.error("Failed to load endorsements:", err);
+    } catch (err: any) {
+      if (err?.status !== 401) {
+        console.error("Failed to load endorsements:", err);
+      }
       throw err;
     }
   }, [selectedMemberId]);
 
   const refreshRequirements = useCallback(async () => {
+    if (!hasValidToken()) return;
     try {
       const params = selectedMemberId === "all" ? {} : { memberId: selectedMemberId };
       const data = await api.getRequirements(params);
       setRequirements(data);
-    } catch (err) {
-      console.error("Failed to load requirements:", err);
+    } catch (err: any) {
+      if (err?.status !== 401) {
+        console.error("Failed to load requirements:", err);
+      }
       throw err;
     }
   }, [selectedMemberId]);
 
   const refreshTickets = useCallback(async () => {
+    if (!hasValidToken()) return;
     try {
       const data = await api.getTickets();
       setTickets(data);
-    } catch (err) {
-      console.error("Failed to load tickets:", err);
+    } catch (err: any) {
+      if (err?.status !== 401) {
+        console.error("Failed to load tickets:", err);
+      }
       throw err;
     }
   }, []);
 
   const refreshVehicles = useCallback(async () => {
+    if (!hasValidToken()) return;
     try {
       const params = selectedMemberId === "all" ? {} : { ownerId: selectedMemberId };
       const data = await api.getVehicles(params);
       setVehicles(data);
-    } catch (err) {
-      console.error("Failed to load vehicles:", err);
+    } catch (err: any) {
+      if (err?.status !== 401) {
+        console.error("Failed to load vehicles:", err);
+      }
       throw err;
     }
   }, [selectedMemberId]);
 
   const refreshAlerts = useCallback(async () => {
+    if (!hasValidToken()) return;
     try {
       const data = await api.getAlerts();
       setAlerts(data);
-    } catch (err) {
-      console.error("Failed to load alerts:", err);
+    } catch (err: any) {
+      if (err?.status !== 401) {
+        console.error("Failed to load alerts:", err);
+      }
       throw err;
     }
   }, []);
 
   const refreshAll = useCallback(async () => {
+    if (!hasValidToken()) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -203,7 +229,9 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
         refreshAlerts(),
       ]);
     } catch (err: any) {
-      setError("Failed to load latest data. Please check your network connection or try again.");
+      if (err?.status !== 401) {
+        setError("Failed to load latest data. Please check your network connection or try again.");
+      }
     } finally {
       setLoading(false);
     }
