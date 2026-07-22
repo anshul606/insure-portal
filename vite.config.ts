@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => {
       host: true,
       allowedHosts: true,
       proxy: {
-        "/customer-beta/api": {
+        "/customer-beta": {
           target: targetUrl,
           changeOrigin: true,
           secure: false,

@@ -1,6 +1,8 @@
-const BASE_URL = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/customer-beta`
+const rawApiUrl = import.meta.env.VITE_API_URL;
+const BASE_URL = rawApiUrl && rawApiUrl.startsWith("/")
+  ? (rawApiUrl.endsWith("/customer-beta") ? rawApiUrl : `${rawApiUrl}/customer-beta`)
   : "/customer-beta";
+
 
 export type PaginatedMeta = {
   totalCount: number;
