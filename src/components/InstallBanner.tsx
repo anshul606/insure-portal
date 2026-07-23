@@ -4,14 +4,24 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
 import Backdrop from "@mui/material/Backdrop";
+import { useState } from "react";
 import { useInstallPrompt } from "../hooks/useInstallPrompt";
 import { useBranding } from "../contexts/BrandingContext";
 
 export default function InstallBanner() {
-  const { showBanner, triggerInstall, dismiss, isIOS, canNativeInstall } = useInstallPrompt();
+  const { showBanner, triggerInstall, dismiss, isIOS, canNativeInstall, platform } = useInstallPrompt();
   const { branding, orgCode, getLogoUrl } = useBranding();
+  const [showInstructions, setShowInstructions] = useState(false);
 
   if (!showBanner) return null;
+
+  const handleInstallClick = async () => {
+    if (canNativeInstall) {
+      await triggerInstall();
+    } else {
+      setShowInstructions(true);
+    }
+  };
 
   const logoSrc = branding?.squareIconUrl
     ? getLogoUrl(branding.squareIconUrl)
@@ -254,9 +264,70 @@ export default function InstallBanner() {
                   <ArrowDown size={18} />
                 </Box>
               </Box>
+            ) : (!canNativeInstall && (platform === "android" || showInstructions)) ? (
+              <Box
+                sx={{
+                  bgcolor: "info.light",
+                  borderRadius: 3,
+                  p: 2,
+                  mb: 1,
+                  border: "1px solid",
+                  borderColor: "#B5D4F4",
+                }}
+              >
+                <Typography sx={{ fontWeight: 600, fontSize: 13, color: "text.primary", mb: 1.5 }}>
+                  To install on Android:
+                </Typography>
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <Box
+                      sx={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: "50%",
+                        bgcolor: "primary.main",
+                        color: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        flexShrink: 0,
+                      }}
+                    >
+                      1
+                    </Box>
+                    <Typography sx={{ fontSize: 12, color: "text.primary" }}>
+                      Tap the Chrome menu <strong>⋮</strong> at the top right
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <Box
+                      sx={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: "50%",
+                        bgcolor: "primary.main",
+                        color: "#fff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        flexShrink: 0,
+                      }}
+                    >
+                      2
+                    </Box>
+                    <Typography sx={{ fontSize: 12, color: "text.primary" }}>
+                      Tap <strong>"Add to Home screen"</strong> or <strong>"Install app"</strong>
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
             ) : (
               <Button
-                onClick={triggerInstall}
+                onClick={handleInstallClick}
                 fullWidth
                 variant="contained"
                 startIcon={<Download size={18} />}
