@@ -16,16 +16,32 @@ const RESERVED_SUBDOMAINS = new Set([
 ]);
 
 export function getOrgCodeFromLocation(): string {
-  if (typeof window !== "undefined") {
-    const searchParams = new URLSearchParams(window.location.search);
+  if (typeof window !== "undefined" && window.location.search) {
+    const rawSearch = window.location.search.trim();
+    const searchParams = new URLSearchParams(rawSearch);
     const paramOrg =
       searchParams.get("orgcode") ||
       searchParams.get("orgCode") ||
-      searchParams.get("org");
+      searchParams.get("org") ||
+      searchParams.get("");
+
     if (paramOrg && paramOrg.trim().length > 0) {
       const cleanOrg = paramOrg.trim().toLowerCase();
       setStoredOrgCode(cleanOrg);
       return cleanOrg;
+    }
+
+    const firstKey = Array.from(searchParams.keys())[0];
+    if (firstKey && firstKey.trim().length > 0 && !firstKey.includes("/") && !firstKey.includes("=")) {
+      const cleanOrg = firstKey.trim().toLowerCase();
+      setStoredOrgCode(cleanOrg);
+      return cleanOrg;
+    }
+
+    const stripped = rawSearch.replace(/^\?=?/, "").split("&")[0].split("=")[0].trim().toLowerCase();
+    if (stripped && !stripped.includes("/") && stripped.length > 0) {
+      setStoredOrgCode(stripped);
+      return stripped;
     }
   }
 

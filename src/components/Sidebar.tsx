@@ -5,7 +5,6 @@ import Typography from "@mui/material/Typography";
 import { NavLink } from "react-router-dom";
 import { useMember } from "../contexts/MemberContext";
 import { useAlert } from "../contexts/InsuranceContext";
-import { useBranding } from "../contexts/BrandingContext";
 import { api } from "../services/api";
 import type { Advisor } from "../types/models";
 import {
@@ -109,7 +108,6 @@ type SidebarProps = {
 export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
   const { members, selectedMemberId, setSelectedMemberId } = useMember();
   const { alerts } = useAlert();
-  const { branding, getLogoUrl } = useBranding();
   const unreadCount = alerts.filter((a) => !a.read).length;
   const [showMemberSelect, setShowMemberSelect] = useState(false);
   const [advisor, setAdvisor] = useState<Advisor | null>(null);
@@ -131,8 +129,6 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
     setShowMemberSelect(false);
     if (onClose) onClose();
   };
-
-  const squareIconSrc = branding?.squareIconUrl ? getLogoUrl(branding.squareIconUrl) : "";
 
   const content = (
     <Box
@@ -407,88 +403,10 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
             width: 280,
             bgcolor: "background.paper",
             height: "100%",
+            pt: "64px",
           },
         }}
       >
-        <Box
-          sx={{
-            px: 3,
-            py: 2,
-            borderBottom: "1px solid",
-            borderColor: "divider",
-            mb: 1,
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-            {squareIconSrc ? (
-              <Box
-                component="img"
-                src={squareIconSrc}
-                alt="Broker Logo"
-                sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "8px",
-                  objectFit: "contain",
-                }}
-              />
-            ) : (
-              <Box
-                sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "8px",
-                  background: "linear-gradient(135deg, #1456A0 0%, #4F46E5 100%)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#fff",
-                }}
-              >
-                <Shield size={16} />
-              </Box>
-            )}
-            <Box sx={{ flex: 1 }}>
-              <Typography
-                sx={{ fontSize: 13, fontWeight: 700, color: "text.primary" }}
-              >
-                {branding?.name || "InsurePortal"}
-              </Typography>
-              <Box sx={{ mt: 0.5 }}>
-                <select
-                  value={selectedMemberId}
-                  onChange={(e) => handleMemberSelect(e.target.value)}
-                  style={{
-                    fontSize: "11px",
-                    fontWeight: 600,
-                    color: "#1456A0",
-                    backgroundColor: "rgba(20,86,160,0.06)",
-                    border: "none",
-                    borderRadius: "4px",
-                    padding: "4px 8px",
-                    paddingRight: "24px",
-                    cursor: "pointer",
-                    outline: "none",
-                    width: "100%",
-                    maxWidth: "160px",
-                    fontFamily: "inherit",
-                    appearance: "none",
-                    backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231456A0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>")`,
-                    backgroundRepeat: "no-repeat",
-                    backgroundPosition: "right 8px center",
-                  }}
-                >
-                  <option value="all">All Members</option>
-                  {members.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.name}
-                    </option>
-                  ))}
-                </select>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
         <Box sx={{ flex: 1, overflowY: "auto" }}>
           {content}
         </Box>

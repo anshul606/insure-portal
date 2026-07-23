@@ -52,12 +52,19 @@ export function useInstallPrompt() {
             setInstallPrompt(null);
         };
 
+        const onShow = () => {
+            localStorage.removeItem("pwa-install-dismissed");
+            setIsDismissed(false);
+        };
+
         window.addEventListener("beforeinstallprompt", onBeforeInstall);
         window.addEventListener("appinstalled", onInstalled);
+        window.addEventListener("show-pwa-install-banner", onShow);
 
         return () => {
             window.removeEventListener("beforeinstallprompt", onBeforeInstall);
             window.removeEventListener("appinstalled", onInstalled);
+            window.removeEventListener("show-pwa-install-banner", onShow);
         };
     }, []);
 
@@ -74,9 +81,14 @@ export function useInstallPrompt() {
         localStorage.setItem("pwa-install-dismissed", String(Date.now()));
     }, []);
 
+    const resetDismissed = useCallback(() => {
+        localStorage.removeItem("pwa-install-dismissed");
+        setIsDismissed(false);
+    }, []);
+
     const isIOS = platform === "ios";
     const canNativeInstall = !!installPrompt;
-    const showBanner = !isInstalled && !isDismissed && (canNativeInstall || isIOS);
+    const showBanner = !isInstalled && (!isDismissed || canNativeInstall || isIOS);
 
-    return { showBanner, triggerInstall, dismiss, isInstalled, isIOS, canNativeInstall, platform };
+    return { showBanner, triggerInstall, dismiss, resetDismissed, isInstalled, isIOS, canNativeInstall, platform };
 }

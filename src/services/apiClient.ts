@@ -46,11 +46,16 @@ export function resetRedirectGuard() {
 }
 
 function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {};
   const token = localStorage.getItem("token");
   if (token && token !== "undefined" && token !== "null" && token.trim().length > 0) {
-    return { Authorization: `Bearer ${token}` };
+    headers["Authorization"] = `Bearer ${token}`;
   }
-  return {};
+  const orgCode = localStorage.getItem("portal_org_code");
+  if (orgCode && orgCode.trim().length > 0) {
+    headers["X-Org-Code"] = orgCode.trim();
+  }
+  return headers;
 }
 
 export function buildUrl(path: string, params?: Record<string, string | number | boolean | undefined>): string {

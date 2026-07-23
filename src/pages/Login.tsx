@@ -2,7 +2,6 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
-import Chip from "@mui/material/Chip";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Eye, EyeOff, Shield } from "lucide-react";
@@ -15,7 +14,7 @@ import { useBranding } from "../contexts/BrandingContext";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { orgCode, setOrgCode, branding, getLogoUrl } = useBranding();
+  const { orgCode, branding, getLogoUrl } = useBranding();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentOrg, setCurrentOrg] = useState(orgCode);
@@ -26,17 +25,6 @@ export default function LoginPage() {
   useEffect(() => {
     setCurrentOrg(orgCode);
   }, [orgCode]);
-
-  const handleOrgChange = (newOrg: string) => {
-    setCurrentOrg(newOrg);
-    setOrgCode(newOrg);
-  };
-
-  const handleQuickCredential = (org: string, user: string, pass: string) => {
-    handleOrgChange(org);
-    setUsername(user);
-    setPassword(pass);
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,16 +62,32 @@ export default function LoginPage() {
     >
       {logoSrc ? (
         <Box
-          component="img"
-          src={logoSrc}
-          alt={branding?.name || "Broker Logo"}
           sx={{
-            maxHeight: 64,
-            maxWidth: 240,
-            objectFit: "contain",
+            borderRadius: "16px",
+            overflow: "hidden",
+            p: 1,
+            bgcolor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            boxShadow: "0 4px 16px rgba(0,0,0,0.06)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             mb: 1.5,
           }}
-        />
+        >
+          <Box
+            component="img"
+            src={logoSrc}
+            alt={branding?.name || "Broker Logo"}
+            sx={{
+              maxHeight: 56,
+              maxWidth: 220,
+              borderRadius: "12px",
+              objectFit: "contain",
+            }}
+          />
+        </Box>
       ) : (
         <Box
           sx={{
@@ -185,21 +189,6 @@ export default function LoginPage() {
               }
             }}
           />
-          <Box sx={{ display: "flex", gap: 1, mt: 1, alignItems: "center" }}>
-            <Typography sx={{ fontSize: 11, color: "text.disabled" }}>Quick test:</Typography>
-            <Chip
-              label="rajesh (Marsh)"
-              size="small"
-              onClick={() => handleQuickCredential("marsh", "rajesh", "Marsh@123")}
-              sx={{ fontSize: 10, height: 22, cursor: "pointer" }}
-            />
-            <Chip
-              label="arjun (ABIBL)"
-              size="small"
-              onClick={() => handleQuickCredential("abibl", "arjun", "Abibl@123")}
-              sx={{ fontSize: 10, height: 22, cursor: "pointer" }}
-            />
-          </Box>
         </Box>
 
         <Button

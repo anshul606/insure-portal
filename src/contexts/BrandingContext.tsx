@@ -36,6 +36,69 @@ function updateFavicon(iconUrl?: string) {
   }
 }
 
+function updateDynamicManifest(appName: string, iconUrl?: string) {
+  const name = appName || "InsurePortal";
+  const manifestObj = {
+    name: name,
+    short_name: name,
+    description: `${name} Client Portal`,
+    start_url: "/",
+    display: "standalone",
+    background_color: "#F7F6F3",
+    theme_color: "#1456A0",
+    orientation: "portrait",
+    icons: iconUrl
+      ? [
+          {
+            src: iconUrl,
+            sizes: "192x192 512x512",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+        ]
+      : [
+          {
+            src: "/icons/icon-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+          {
+            src: "/icons/icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable",
+          },
+        ],
+  };
+
+  const stringManifest = JSON.stringify(manifestObj);
+  const blob = new Blob([stringManifest], { type: "application/json" });
+  const manifestUrl = URL.createObjectURL(blob);
+
+  let link = document.querySelector<HTMLLinkElement>("link[rel='manifest']");
+  if (!link) {
+    link = document.createElement("link");
+    link.rel = "manifest";
+    document.head.appendChild(link);
+  }
+  link.href = manifestUrl;
+
+  let appleTitle = document.querySelector<HTMLMetaElement>("meta[name='apple-mobile-web-app-title']");
+  if (appleTitle) {
+    appleTitle.content = name;
+  }
+  if (iconUrl) {
+    let appleIcon = document.querySelector<HTMLLinkElement>("link[rel='apple-touch-icon']");
+    if (!appleIcon) {
+      appleIcon = document.createElement("link");
+      appleIcon.rel = "apple-touch-icon";
+      document.head.appendChild(appleIcon);
+    }
+    appleIcon.href = iconUrl;
+  }
+}
+
 export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [orgCode, setOrgCodeState] = useState<string>(() => getOrgCodeFromLocation());
   const [branding, setBranding] = useState<BrandingData | null>(null);
@@ -46,6 +109,17 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setStoredOrgCode(clean);
     setOrgCodeState(clean);
   }, []);
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const codeFromUrl = getOrgCodeFromLocation();
+      if (codeFromUrl && codeFromUrl !== orgCode) {
+        setOrgCodeState(codeFromUrl);
+      }
+    };
+    window.addEventListener("popstate", handleLocationChange);
+    return () => window.removeEventListener("popstate", handleLocationChange);
+  }, [orgCode]);
 
   useEffect(() => {
     let active = true;
@@ -59,11 +133,13 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             document.title = `${data.name} — Customer Portal`;
           }
           const squareUrl = data.squareIconUrl || data.loginLogoUrl;
+          const fullIconUrl = squareUrl ? getAssetUrl(squareUrl) : "";
           if (squareUrl) {
-            updateFavicon(getAssetUrl(squareUrl));
+            updateFavicon(fullIconUrl);
           } else {
             updateFavicon("/favicon.svg");
           }
+          updateDynamicManifest(data.name, fullIconUrl);
         }
       } catch (err) {
         console.error(err);

@@ -7,7 +7,7 @@ import Typography from "@mui/material/Typography";
 import MenuItem from "@mui/material/MenuItem";
 import Badge from "@mui/material/Badge";
 import Divider from "@mui/material/Divider";
-import { Bell, RefreshCcw, ChevronDown, Shield } from "lucide-react";
+import { Bell, RefreshCcw, ChevronDown, Shield, Smartphone } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PopoverMenu from "./PopoverMenu";
@@ -39,6 +39,11 @@ export default function Header() {
   const selectGroup = (id: string) => {
     setSelectedMemberId(id);
     handleGroupClose();
+  };
+
+  const handleDownloadApp = () => {
+    handleProfileClose();
+    window.dispatchEvent(new Event("show-pwa-install-banner"));
   };
 
   const handleLogout = () => {
@@ -224,6 +229,22 @@ export default function Header() {
         <Divider sx={{ my: 0.5 }} />
         <MenuItem onClick={() => { handleProfileClose(); navigate("/profile"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1 }}>Profile settings</MenuItem>
         <MenuItem onClick={() => { handleProfileClose(); navigate("/tickets"); }} sx={{ borderRadius: 1.5, fontSize: 13, py: 1 }}>Help & Support</MenuItem>
+        <MenuItem
+          onClick={handleDownloadApp}
+          sx={{
+            display: { xs: "flex", md: "none" },
+            alignItems: "center",
+            gap: 1,
+            borderRadius: 1.5,
+            fontSize: 13,
+            py: 1,
+            color: "primary.main",
+            fontWeight: 600,
+          }}
+        >
+          <Smartphone size={16} />
+          Download App
+        </MenuItem>
         <Divider sx={{ my: 0.5 }} />
         <MenuItem onClick={handleLogout} sx={{ borderRadius: 1.5, fontSize: 13, py: 1, color: "error.main" }}>Logout</MenuItem>
       </PopoverMenu>
