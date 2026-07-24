@@ -152,13 +152,21 @@ export default function DocumentsPage() {
               onClick={() => navigate("/upload")}
               startIcon={<UploadIcon size={14} />}
               sx={{
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 500,
                 textTransform: "none",
                 minHeight: 36,
-                px: 2,
+                px: 1.75,
                 borderRadius: 2,
+                bgcolor: "info.light",
+                color: "info.main",
                 boxShadow: "none",
+                border: "1px solid #B5D4F4",
+                "&:hover": {
+                  bgcolor: "info.light",
+                  opacity: 0.9,
+                  boxShadow: "none",
+                },
               }}
             >
               Upload

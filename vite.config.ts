@@ -44,7 +44,9 @@ export default defineConfig(({ mode }) => {
             purpose: "any",
           },
           {
-            src: "/icons/icon-192.png",
+            // Dedicated maskable icon with safe-zone padding (~10% inset on all sides).
+            // Generate icon-192-maskable.png from the source SVG with padding applied.
+            src: "/icons/icon-192-maskable.png",
             sizes: "192x192",
             type: "image/png",
             purpose: "maskable",
@@ -56,7 +58,9 @@ export default defineConfig(({ mode }) => {
             purpose: "any",
           },
           {
-            src: "/icons/icon-512.png",
+            // Dedicated maskable icon with safe-zone padding (~10% inset on all sides).
+            // Generate icon-512-maskable.png from the source SVG with padding applied.
+            src: "/icons/icon-512-maskable.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable",

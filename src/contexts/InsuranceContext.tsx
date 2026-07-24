@@ -58,7 +58,6 @@ type InsuranceContextType = {
   vehicles: VehicleData[];
   alerts: AlertData[];
 
-  searchQuery: string;
   getPoliciesByMember: (memberId: string) => PolicyData[];
   getClaimsByMember: (memberId: string) => ClaimData[];
   getEndorsementsByMember: (memberId: string) => EndorsementData[];
@@ -66,7 +65,6 @@ type InsuranceContextType = {
   getTicketsByMember: (memberId: string) => TicketData[];
   getVehiclesByMember: (memberId: string) => VehicleData[];
 
-  globalSearch: (query: string) => InsuranceEntity[];
   getClaimablePolicies: (memberId: string) => PolicyData[];
   getPolicyById: (id: string) => PolicyData | undefined;
   getClaimById: (id: string) => ClaimData | undefined;
@@ -112,7 +110,6 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
   const [vehicles, setVehicles] = useState<VehicleData[]>([]);
   const [alerts, setAlerts] = useState<AlertData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const refreshPolicies = useCallback(async () => {
@@ -319,19 +316,15 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const getTicketsByMember = (_memberId: string): TicketData[] => {
-    return tickets;
+  const getTicketsByMember = (memberId: string): TicketData[] => {
+    if (memberId === "all") return tickets;
+    // memberId is optional on TicketData; include tickets where it's unset for backward compat.
+    return tickets.filter((t) => !t.memberId || t.memberId === memberId);
   };
 
   const getVehiclesByMember = (memberId: string): VehicleData[] => {
     if (memberId === "all") return vehicles;
     return vehicles.filter((v) => v.ownerId === memberId);
-  };
-
-  const globalSearch = (query: string): InsuranceEntity[] => {
-    return entities.filter((e) =>
-      JSON.stringify(e).toLowerCase().includes(query.toLowerCase())
-    );
   };
 
   const getClaimablePolicies = (memberId: string): PolicyData[] => {
@@ -401,14 +394,12 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
         tickets,
         vehicles,
         alerts,
-        searchQuery,
         getPoliciesByMember,
         getClaimsByMember,
         getEndorsementsByMember,
         getRequirementsByMember,
         getTicketsByMember,
         getVehiclesByMember,
-        globalSearch,
         getClaimablePolicies,
         getPolicyById,
         getClaimById,

@@ -9,9 +9,15 @@ import Welcome from "../components/Welcome";
 import AppLayout from "../layouts/AppLayout";
 import MembersList from "../components/members/MembersList";
 import MemberForm from "../components/members/MemberForm";
+import { useMember } from "../contexts/MemberContext";
 
 export default function MembersPage() {
   const [showForm, setShowForm] = useState(false);
+  const { members } = useMember();
+  // Derive a group label: use the first member's name or a sensible fallback
+  const groupLabel = members.length > 0
+    ? `${members[0].name.split(" ").slice(-1)[0]} Family Group`
+    : "Family Group";
 
   return (
     <AppLayout>
@@ -29,7 +35,7 @@ export default function MembersPage() {
           <Box sx={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
             <Welcome
               title="Family Members"
-              content="Members under the Sharma Family Group."
+              content={`Members under the ${groupLabel}.`}
               hideMemberSelector
             />
           </Box>
@@ -73,7 +79,7 @@ export default function MembersPage() {
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Typography sx={{ fontSize: 16, fontWeight: 600, color: "text.primary" }}>
-                B2C — Sharma Family Group
+                B2C — {groupLabel}
               </Typography>
               <Chip
                 label="Family"

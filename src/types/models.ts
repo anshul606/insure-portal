@@ -191,6 +191,7 @@ export type TicketData = {
   subject: string;
   relatedPolicy?: string;
   policyId?: string;
+  memberId?: string;
   category: string;
   priority: string;
   status: string;

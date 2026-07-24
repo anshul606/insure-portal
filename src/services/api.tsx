@@ -13,7 +13,6 @@ import type {
   LoginResponse,
   Advisor,
   Faq,
-  InsuranceEntity,
   BrandingData,
   ChangePasswordRequest,
   Preferences,
@@ -284,6 +283,25 @@ export const api = {
     return res.data;
   },
 
+  uploadDocument: async (
+    file: File,
+    meta: {
+      memberId?: string;
+      relatedToId?: string;
+      docType?: string;
+      name?: string;
+    }
+  ): Promise<DocumentData> => {
+    const form = new FormData();
+    form.append("file", file, file.name);
+    if (meta.memberId) form.append("memberId", meta.memberId);
+    if (meta.relatedToId) form.append("relatedToId", meta.relatedToId);
+    if (meta.docType) form.append("docType", meta.docType);
+    form.append("name", meta.name || file.name);
+    const res = await apiClient.upload<DocumentData>("/api/documents", form);
+    return res.data;
+  },
+
   downloadDocument: async (id: string): Promise<void> => {
     await downloadFile(`/api/documents/${id}/download`, `document-${id}.pdf`);
   },
@@ -349,15 +367,5 @@ export const api = {
   getFaqs: async (): Promise<Faq[]> => {
     const res = await apiClient.get<Faq[]>("/api/faqs");
     return res.data;
-  },
-
-  getInsuranceEntities: async (): Promise<InsuranceEntity[]> => {
-    const [policies, claims, endorsements, requirements] = await Promise.all([
-      api.getPolicies(),
-      api.getClaims(),
-      api.getEndorsements(),
-      api.getRequirements(),
-    ]);
-    return [...policies, ...claims, ...endorsements, ...requirements];
   },
 };

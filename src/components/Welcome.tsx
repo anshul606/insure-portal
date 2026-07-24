@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { useMember } from "../contexts/MemberContext";
+import { usePolicy } from "../contexts/InsuranceContext";
 
 type dashboardHeaderProps = {
   title: string;
@@ -10,6 +11,20 @@ type dashboardHeaderProps = {
 
 export default function Welcome({ title, content, hideMemberSelector }: dashboardHeaderProps) {
   const { members, selectedMemberId, setSelectedMemberId } = useMember();
+  const { policies } = usePolicy();
+
+  // Compute total sum insured across all active policies
+  const totalSumInsured = policies.reduce((sum, p) => sum + (p.sumInsured || 0), 0);
+  const formatCoverage = (amount: number): string => {
+    if (amount >= 10_000_000) return `₹${(amount / 10_000_000).toFixed(1)} Cr`;
+    if (amount >= 100_000) return `₹${(amount / 100_000).toFixed(1)} L`;
+    return `₹${amount.toLocaleString("en-IN")}`;
+  };
+  const coverageLabel = totalSumInsured > 0 ? formatCoverage(totalSumInsured) : null;
+  const summaryLabel = [
+    `${members.length} member${members.length !== 1 ? "s" : ""}`,
+    ...(coverageLabel ? [coverageLabel] : []),
+  ].join(" · ");
 
   return (
     <Box sx={{ overflow: "hidden", minWidth: 0 }}>
@@ -118,19 +133,22 @@ export default function Welcome({ title, content, hideMemberSelector }: dashboar
             ))}
           </Box>
 
-          <Typography
-            sx={{
-              fontSize: 11,
-              color: "text.disabled",
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-              px: { xs: 0.5, sm: 0 },
-            }}
-          >
-            4 members · ₹1.5 Cr
-          </Typography>
+          {members.length > 0 && (
+            <Typography
+              sx={{
+                fontSize: 11,
+                color: "text.disabled",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+                px: { xs: 0.5, sm: 0 },
+              }}
+            >
+              {summaryLabel}
+            </Typography>
+          )}
         </Box>
       )}
     </Box>
   );
 }
+

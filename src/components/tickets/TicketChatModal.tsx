@@ -7,6 +7,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import Drawer from "@mui/material/Drawer";
 import Dialog from "@mui/material/Dialog";
 import CircularProgress from "@mui/material/CircularProgress";
+import Snackbar from "@mui/material/Snackbar";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import { X, Send, Paperclip } from "lucide-react";
@@ -28,6 +29,7 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
   const [message, setMessage] = useState("");
   const [activeTicket, setActiveTicket] = useState<TicketData | null>(null);
   const [sending, setSending] = useState(false);
+  const [attachSnack, setAttachSnack] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -204,7 +206,13 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
               input: {
                 startAdornment: (
                   <InputAdornment position="start">
-                    <IconButton size="small" sx={{ color: "text.disabled" }} disabled={sending}>
+                    <IconButton
+                      size="small"
+                      sx={{ color: "text.disabled" }}
+                      disabled={sending}
+                      onClick={() => setAttachSnack(true)}
+                      aria-label="Attach file"
+                    >
                       <Paperclip size={18} />
                     </IconButton>
                   </InputAdornment>
@@ -228,6 +236,15 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
           />
         </Box>
       )}
+
+      {/* Attachment not-yet-available notice */}
+      <Snackbar
+        open={attachSnack}
+        autoHideDuration={3000}
+        onClose={() => setAttachSnack(false)}
+        message="Attachment upload is coming soon"
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      />
     </Box>
   );
 

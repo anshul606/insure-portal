@@ -8,11 +8,10 @@ export type IconConfig = {
   renewDateColor?: string;
 };
 
-/**
- * Maps a policy's `category` and `status` to its icon + UI colours.
- * Icons are a front-end concern — the API never returns them.
- */
-export function getIconForCategory(category?: string, status?: string): IconConfig {
+export function getIconForCategory(
+  category?: string,
+  status?: string,
+): IconConfig {
   if (status === "external") {
     return { icon: <FileText size={19} />, iconBg: "#F1EFE8" };
   }
@@ -38,10 +37,6 @@ export function getIconForCategory(category?: string, status?: string): IconConf
   }
 }
 
-/**
- * Formats a numeric sum insured into a short display string.
- * e.g. 10000000 → "₹1Cr", 2500000 → "₹25L", 50000 → "₹50,000"
- */
 export function formatSumInsuredShort(sum: number): string {
   if (sum >= 10000000) {
     const cr = sum / 10000000;
@@ -53,11 +48,10 @@ export function formatSumInsuredShort(sum: number): string {
   return `₹${sum.toLocaleString("en-IN")}`;
 }
 
-/**
- * Builds a short coverage text based on policy category.
- * e.g. motor → "IDV: ₹8.5L", life → "SA: ₹1Cr", health → "₹25L"
- */
-export function getCoverageText(category?: string, sumInsured?: number): string {
+export function getCoverageText(
+  category?: string,
+  sumInsured?: number,
+): string {
   if (!sumInsured) return "—";
   const shortSum = formatSumInsuredShort(sumInsured);
   if (category?.toLowerCase() === "motor") {

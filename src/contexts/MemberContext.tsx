@@ -55,16 +55,12 @@ export function MemberProvider({ children }: { children: ReactNode }) {
     refreshMembers().finally(() => setLoading(false));
   }, []);
 
-  // "all" is a UI concept — there's no "all" member in the API.
-  // activeMember is only meaningful when a specific member is selected.
   const activeMember =
     selectedMemberId === "all"
       ? members[0]
       : members.find((m) => m.id === selectedMemberId) || members[0];
 
-  const getProfileForMember = (
-    memberId: string
-  ): MemberProfile | undefined => {
+  const getProfileForMember = (memberId: string): MemberProfile | undefined => {
     if (memberId === "all") return undefined;
     return members.find((m) => m.id === memberId)?.profile;
   };
@@ -98,4 +94,3 @@ export function useMember() {
     throw new Error("useMember must be used within a MemberProvider");
   return context;
 }
-

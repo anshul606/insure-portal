@@ -4,16 +4,8 @@ const BASE_URL = rawApiUrl && rawApiUrl.startsWith("/")
   : "/customer-beta";
 
 
-export type PaginatedMeta = {
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-};
-
 export type ApiResponse<T> = {
   data: T;
-  pagination?: PaginatedMeta;
 };
 
 class ApiError extends Error {
@@ -25,8 +17,8 @@ class ApiError extends Error {
       typeof body === "object" && body !== null && "error" in body
         ? String((body as { error: string }).error)
         : typeof body === "string" && body.length > 0
-        ? body
-        : `Request failed with status ${status}`;
+          ? body
+          : `Request failed with status ${status}`;
     super(message);
     this.name = "ApiError";
     this.status = status;
@@ -99,7 +91,7 @@ export async function downloadFile(path: string, fallbackFileName: string = "dow
     try {
       const errObj = await response.json();
       if (errObj && errObj.error) errText = errObj.error;
-    } catch {}
+    } catch { }
     throw new ApiError(response.status, { error: errText });
   }
 
@@ -148,21 +140,7 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     throw new ApiError(response.status, body);
   }
 
-  const totalCount = response.headers.get("X-Total-Count");
-  const page = response.headers.get("X-Page");
-  const pageSize = response.headers.get("X-Page-Size");
-  const totalPages = response.headers.get("X-Total-Pages");
-
   const result: ApiResponse<T> = { data: body as T };
-
-  if (totalCount) {
-    result.pagination = {
-      totalCount: parseInt(totalCount, 10),
-      page: page ? parseInt(page, 10) : 1,
-      pageSize: pageSize ? parseInt(pageSize, 10) : 20,
-      totalPages: totalPages ? parseInt(totalPages, 10) : 1,
-    };
-  }
 
   return result;
 }
@@ -222,6 +200,17 @@ export const apiClient = {
         "Content-Type": "application/json",
         ...getAuthHeaders(),
       },
+    });
+    return handleResponse<T>(response);
+  },
+
+  async upload<T>(path: string, formData: FormData): Promise<ApiResponse<T>> {
+    const response = await fetch(buildUrl(path), {
+      method: "POST",
+      headers: {
+        ...getAuthHeaders(),
+      },
+      body: formData,
     });
     return handleResponse<T>(response);
   },

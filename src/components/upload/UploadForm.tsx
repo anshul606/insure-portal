@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
@@ -6,7 +6,9 @@ import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import Alert from "@mui/material/Alert";
 import CircularProgress from "@mui/material/CircularProgress";
-import { Info, Paperclip } from "lucide-react";
+import LinearProgress from "@mui/material/LinearProgress";
+import IconButton from "@mui/material/IconButton";
+import { Info, Paperclip, X as XIcon, FileText } from "lucide-react";
 import UiCard from "../shared/UiCard";
 import { useMember } from "../../contexts/MemberContext";
 import { usePolicy } from "../../contexts/InsuranceContext";
@@ -19,8 +21,11 @@ const POLICY_TYPES = [
   "Motor Insurance — Two Wheeler",
   "Life Insurance — Term",
   "Home Insurance",
-  "Travel Insurance"
+  "Travel Insurance",
 ];
+
+const ACCEPTED_TYPES = ".pdf,.jpg,.jpeg,.png";
+const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
 
 const getCategoryFromType = (type: string): string => {
   const lower = type.toLowerCase();
@@ -39,9 +44,16 @@ const getCoverageLabelFromType = (type: string): string => {
   return "Sum Insured";
 };
 
+const formatBytes = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 export default function UploadForm() {
   const { members } = useMember();
   const { refreshPolicies } = usePolicy();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [memberId, setMemberId] = useState(
     members.filter((m) => m.id !== "all")[0]?.id || ""
@@ -55,9 +67,60 @@ export default function UploadForm() {
   const [expiryDateIso, setExpiryDateIso] = useState("");
   const [notes, setNotes] = useState("");
 
+  // File state
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+
   const [saving, setSaving] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<"idle" | "policy" | "document" | "done">("idle");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const handleFileSelect = (file: File | null) => {
+    setFileError(null);
+    if (!file) return;
+    if (file.size > MAX_FILE_BYTES) {
+      setFileError(`File too large — max 10 MB (selected: ${formatBytes(file.size)})`);
+      return;
+    }
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    if (!["pdf", "jpg", "jpeg", "png"].includes(ext || "")) {
+      setFileError("Only PDF, JPG, and PNG files are accepted.");
+      return;
+    }
+    setSelectedFile(file);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFileSelect(e.target.files?.[0] ?? null);
+    // Reset the input so re-selecting the same file triggers onChange
+    e.target.value = "";
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    handleFileSelect(e.dataTransfer.files[0] ?? null);
+  };
+
+  const clearFile = () => {
+    setSelectedFile(null);
+    setFileError(null);
+  };
+
+  const resetForm = () => {
+    setInsurer("");
+    setPolicyNumber("");
+    setSumInsured("");
+    setPremiumAnnual("");
+    setStartDateIso("");
+    setExpiryDateIso("");
+    setNotes("");
+    setSelectedFile(null);
+    setFileError(null);
+    setUploadProgress("idle");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,39 +135,63 @@ export default function UploadForm() {
     setSaving(true);
     setError(null);
     setSuccess(null);
+    setUploadProgress("policy");
 
-    const newPolicy = {
-      name: policyType,
-      policyNumber: policyNumber.trim(),
-      insurer: insurer.trim(),
-      category: getCategoryFromType(policyType),
-      isExternal: true,
-      type: policyType,
-      coverageLabel: getCoverageLabelFromType(policyType),
-      sumInsured: isNaN(parsedSumInsured) ? 0 : parsedSumInsured,
-      premiumAnnual: isNaN(parsedPremium) ? 0 : parsedPremium,
-      memberIds: [memberId],
-      status: "external",
-      renewDateIso: expiryDateIso,
-      renewLabel: "Expires:",
-    };
+    let createdPolicyId: string | undefined;
 
     try {
-      await api.createPolicy(newPolicy);
+      // Step 1: Create the policy record
+      const newPolicy = {
+        name: policyType,
+        policyNumber: policyNumber.trim(),
+        insurer: insurer.trim(),
+        category: getCategoryFromType(policyType),
+        isExternal: true,
+        type: policyType,
+        coverageLabel: getCoverageLabelFromType(policyType),
+        sumInsured: isNaN(parsedSumInsured) ? 0 : parsedSumInsured,
+        premiumAnnual: isNaN(parsedPremium) ? 0 : parsedPremium,
+        memberIds: [memberId],
+        status: "external",
+        renewDateIso: expiryDateIso,
+        ...(startDateIso ? { startDateIso } : {}),
+        renewLabel: "Expires:",
+        ...(notes ? { notes } : {}),
+      };
+
+      const created = await api.createPolicy(newPolicy);
+      createdPolicyId = created.id;
       await refreshPolicies();
-      setSuccess("Policy uploaded successfully and added to your portfolio under review!");
-      
-      // Clear form
-      setInsurer("");
-      setPolicyNumber("");
-      setSumInsured("");
-      setPremiumAnnual("");
-      setStartDateIso("");
-      setExpiryDateIso("");
-      setNotes("");
+
+      // Step 2: Upload the document file if one was selected
+      if (selectedFile) {
+        setUploadProgress("document");
+        await api.uploadDocument(selectedFile, {
+          memberId,
+          relatedToId: createdPolicyId,
+          docType: "policy-doc",
+          name: `${policyType} — ${policyNumber.trim()}`,
+        });
+      }
+
+      setUploadProgress("done");
+      setSuccess(
+        selectedFile
+          ? "Policy and document uploaded successfully and added to your portfolio under review!"
+          : "Policy details saved! Your advisor will be in touch before the renewal date."
+      );
+      resetForm();
     } catch (err: any) {
       console.error("Failed to upload policy:", err);
-      setError(err.message || "Failed to upload policy. Please try again.");
+      if (uploadProgress === "document" && createdPolicyId) {
+        setError(
+          "Policy details were saved, but the document upload failed. " +
+          "You can re-upload the document from the Documents section."
+        );
+      } else {
+        setError(err.message || "Failed to save policy. Please try again.");
+      }
+      setUploadProgress("idle");
     } finally {
       setSaving(false);
     }
@@ -239,28 +326,121 @@ export default function UploadForm() {
           onChange={(e) => setNotes(e.target.value)}
         />
 
-        <Box
-          sx={{
-            border: "1px dashed",
-            borderColor: "border.main",
-            borderRadius: 2,
-            p: 3,
-            textAlign: "center",
-            cursor: "pointer",
-            bgcolor: "surface.secondary",
-            "&:hover": { bgcolor: "rgba(20,86,160,0.02)" }
-          }}
-          onClick={() => document.getElementById("pol-file")?.click()}
-        >
-          <Paperclip size={24} style={{ marginBottom: 8, color: "var(--mui-palette-text-secondary)" }} />
-          <Typography sx={{ fontSize: 13, fontWeight: 500, color: "text.primary", mb: 0.5 }}>
-            Upload Policy Document
+        {/* File drop zone */}
+        {selectedFile ? (
+          // Selected file preview
+          <Box
+            sx={{
+              border: "1px solid",
+              borderColor: "border.main",
+              borderRadius: 2,
+              p: 1.75,
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+              bgcolor: "surface.secondary",
+            }}
+          >
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: "8px",
+                bgcolor: "#EBF3FC",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <FileText size={18} color="#1456A0" />
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                noWrap
+                sx={{ fontSize: 13, fontWeight: 500, color: "text.primary" }}
+              >
+                {selectedFile.name}
+              </Typography>
+              <Typography sx={{ fontSize: 11, color: "text.disabled" }}>
+                {formatBytes(selectedFile.size)}
+              </Typography>
+            </Box>
+            <IconButton
+              size="small"
+              disabled={saving}
+              onClick={clearFile}
+              aria-label="Remove file"
+              sx={{ color: "text.secondary", flexShrink: 0 }}
+            >
+              <XIcon size={16} />
+            </IconButton>
+          </Box>
+        ) : (
+          // Drop zone
+          <Box
+            sx={{
+              border: "1.5px dashed",
+              borderColor: isDragOver ? "primary.main" : fileError ? "error.main" : "border.main",
+              borderRadius: 2,
+              p: 3,
+              textAlign: "center",
+              cursor: saving ? "not-allowed" : "pointer",
+              bgcolor: isDragOver ? "rgba(20,86,160,0.04)" : "surface.secondary",
+              transition: "all 0.15s",
+              "&:hover": saving ? {} : { borderColor: "primary.main", bgcolor: "rgba(20,86,160,0.04)" },
+              opacity: saving ? 0.6 : 1,
+            }}
+            onClick={() => !saving && fileInputRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); if (!saving) setIsDragOver(true); }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={saving ? undefined : handleDrop}
+            role="button"
+            aria-label="Upload policy document"
+          >
+            <Paperclip
+              size={24}
+              style={{ marginBottom: 8, color: isDragOver ? "#1456A0" : "var(--mui-palette-text-secondary)" }}
+            />
+            <Typography sx={{ fontSize: 13, fontWeight: 500, color: "text.primary", mb: 0.5 }}>
+              Upload Policy Document
+            </Typography>
+            <Typography sx={{ fontSize: 11, color: "text.disabled" }}>
+              PDF, JPG, PNG · Max 10 MB · Optional but recommended
+            </Typography>
+          </Box>
+        )}
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ACCEPTED_TYPES}
+          style={{ display: "none" }}
+          onChange={handleInputChange}
+          id="pol-file-input"
+        />
+
+        {fileError && (
+          <Typography sx={{ fontSize: 12, color: "error.main", mt: -1 }}>
+            {fileError}
           </Typography>
-          <Typography sx={{ fontSize: 11, color: "text.disabled" }}>
-            PDF, JPG, PNG · Max 10 MB
-          </Typography>
-          <input type="file" id="pol-file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: "none" }} />
-        </Box>
+        )}
+
+        {/* Progress bar while saving */}
+        {saving && (
+          <Box>
+            <Typography sx={{ fontSize: 11, color: "text.secondary", mb: 0.5 }}>
+              {uploadProgress === "policy" && "Saving policy details…"}
+              {uploadProgress === "document" && "Uploading document…"}
+              {uploadProgress === "done" && "Done!"}
+            </Typography>
+            <LinearProgress
+              variant="indeterminate"
+              sx={{ borderRadius: 4, height: 4 }}
+            />
+          </Box>
+        )}
 
         <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
           <Button
@@ -268,9 +448,15 @@ export default function UploadForm() {
             variant="contained"
             disabled={saving}
             startIcon={saving ? <CircularProgress size={14} color="inherit" /> : null}
-            sx={{ borderRadius: 2 }}
+            sx={{ borderRadius: 2, minWidth: 180 }}
           >
-            {saving ? "Saving..." : "Save & Upload Policy"}
+            {saving
+              ? uploadProgress === "document"
+                ? "Uploading document…"
+                : "Saving…"
+              : selectedFile
+              ? "Save & Upload Policy"
+              : "Save Policy Details"}
           </Button>
         </Box>
       </Box>

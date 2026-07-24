@@ -1,5 +1,7 @@
 const STORAGE_KEY = "portal_org_code";
-const DEFAULT_ORG_CODE = "marsh";
+// Allow white-label deployments to override the fallback org code via VITE_DEFAULT_ORG_CODE.
+// Defaults to "marsh" when the env var is not set.
+const DEFAULT_ORG_CODE = import.meta.env.VITE_DEFAULT_ORG_CODE || "marsh";
 
 const RESERVED_SUBDOMAINS = new Set([
   "localhost",
@@ -7,12 +9,19 @@ const RESERVED_SUBDOMAINS = new Set([
   "www",
   "app",
   "portal",
+  "customer",
   "customer-portal",
   "insure-portal",
   "preview",
   "vercel",
   "leadcrm",
   "api",
+  "dev",
+  "staging",
+  "test",
+  "demo",
+  "admin",
+  "dashboard",
 ]);
 
 export function getOrgCodeFromLocation(): string {
@@ -32,13 +41,23 @@ export function getOrgCodeFromLocation(): string {
     }
 
     const firstKey = Array.from(searchParams.keys())[0];
-    if (firstKey && firstKey.trim().length > 0 && !firstKey.includes("/") && !firstKey.includes("=")) {
+    if (
+      firstKey &&
+      firstKey.trim().length > 0 &&
+      !firstKey.includes("/") &&
+      !firstKey.includes("=")
+    ) {
       const cleanOrg = firstKey.trim().toLowerCase();
       setStoredOrgCode(cleanOrg);
       return cleanOrg;
     }
 
-    const stripped = rawSearch.replace(/^\?=?/, "").split("&")[0].split("=")[0].trim().toLowerCase();
+    const stripped = rawSearch
+      .replace(/^\?=?/, "")
+      .split("&")[0]
+      .split("=")[0]
+      .trim()
+      .toLowerCase();
     if (stripped && !stripped.includes("/") && stripped.length > 0) {
       setStoredOrgCode(stripped);
       return stripped;
@@ -47,9 +66,31 @@ export function getOrgCodeFromLocation(): string {
 
   if (typeof window !== "undefined" && window.location.hostname) {
     const parts = window.location.hostname.split(".");
-    if (parts.length >= 2) {
+    if (parts.length >= 3) {
       const sub = parts[0].toLowerCase();
       if (!RESERVED_SUBDOMAINS.has(sub) && !/^\d+$/.test(sub)) {
+        setStoredOrgCode(sub);
+        return sub;
+      }
+    } else if (parts.length === 2) {
+      const sub = parts[0].toLowerCase();
+      const tld = parts[1].toLowerCase();
+      const commonTlds = new Set([
+        "com",
+        "in",
+        "org",
+        "net",
+        "co",
+        "io",
+        "dev",
+        "app",
+      ]);
+      if (
+        !RESERVED_SUBDOMAINS.has(sub) &&
+        !commonTlds.has(tld) &&
+        !/^\d+$/.test(sub)
+      ) {
+        setStoredOrgCode(sub);
         return sub;
       }
     }
