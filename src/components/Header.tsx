@@ -14,6 +14,7 @@ import PopoverMenu from "./PopoverMenu";
 import { useMember } from "../contexts/MemberContext";
 import { useAlert } from "../contexts/InsuranceContext";
 import { useBranding } from "../contexts/BrandingContext";
+import { api } from "../services/api";
 
 export default function Header() {
   const navigate = useNavigate();
@@ -46,8 +47,11 @@ export default function Header() {
     window.dispatchEvent(new Event("show-pwa-install-banner"));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     handleProfileClose();
+    try {
+      await api.logout();
+    } catch {}
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("selectedMemberId");

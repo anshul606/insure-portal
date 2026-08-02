@@ -13,7 +13,6 @@ export default function Welcome({ title, content, hideMemberSelector }: dashboar
   const { members, selectedMemberId, setSelectedMemberId } = useMember();
   const { policies } = usePolicy();
 
-  // Compute total sum insured across all active policies
   const totalSumInsured = policies.reduce((sum, p) => sum + (p.sumInsured || 0), 0);
   const formatCoverage = (amount: number): string => {
     if (amount >= 10_000_000) return `₹${(amount / 10_000_000).toFixed(1)} Cr`;
@@ -151,4 +150,3 @@ export default function Welcome({ title, content, hideMemberSelector }: dashboar
     </Box>
   );
 }
-

@@ -1,6 +1,4 @@
 const STORAGE_KEY = "portal_org_code";
-// Allow white-label deployments to override the fallback org code via VITE_DEFAULT_ORG_CODE.
-// Defaults to "marsh" when the env var is not set.
 const DEFAULT_ORG_CODE = import.meta.env.VITE_DEFAULT_ORG_CODE || "marsh";
 
 const RESERVED_SUBDOMAINS = new Set([

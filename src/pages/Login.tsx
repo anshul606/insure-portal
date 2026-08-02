@@ -110,9 +110,7 @@ export default function LoginPage() {
       <Typography variant="h5" sx={{ fontWeight: 700, color: "text.primary", mb: 0.5, textAlign: "center" }}>
         {branding?.name || "InsurePortal"}
       </Typography>
-      <Typography sx={{ fontSize: 13, color: "text.secondary", mb: 3, textAlign: "center" }}>
-        Your Insurance Portfolio Client Portal
-      </Typography>
+
 
       <Box
         component="form"

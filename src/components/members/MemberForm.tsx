@@ -14,7 +14,6 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Form states
   const [name, setName] = useState("");
   const [relationship, setRelationship] = useState("Spouse");
   const [dob, setDob] = useState("");
@@ -35,7 +34,6 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
     setSaving(true);
     setError(null);
 
-    // Compute initials (e.g. Rajesh Sharma -> RS)
     const initials = name
       .trim()
       .split(/\s+/)
@@ -44,12 +42,10 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
       .toUpperCase()
       .slice(0, 2);
 
-    // Compute isMinor (under 18)
     const birthYear = new Date(dob).getFullYear();
     const currentYear = new Date().getFullYear();
     const isMinor = currentYear - birthYear < 18;
 
-    // Format current month/year for "since"
     const monthNames = [
       "Jan", "Feb", "Mar", "Apr", "May", "Jun",
       "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
@@ -57,11 +53,6 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
     const today = new Date();
     const since = `${monthNames[today.getMonth()]} ${today.getFullYear()}`;
 
-    // Generate simulated Client ID
-    const randomNum = Math.floor(10000 + Math.random() * 90000);
-    const clientId = `CLI-${today.getFullYear()}-${randomNum}`;
-
-    // Default KYC items
     const defaultKyc = [
       { label: "Aadhaar Card", status: aadhaar ? "verified" : "not-added" },
       { label: "PAN Card", status: pan ? "verified" : "not-added" },
@@ -72,17 +63,16 @@ export default function MemberForm({ onCancel }: { onCancel: () => void }) {
       name: name.trim(),
       relationship,
       initials,
-      clientId,
       since,
       gender,
       isMinor,
       profile: {
-        mobile: mobile.trim() || "—",
-        email: email.trim() || "—",
+        mobile: mobile.trim() || undefined,
+        email: email.trim() || undefined,
         dobIso: dob,
-        pan: pan.trim().toUpperCase() || "—",
-        aadhaar: aadhaar.trim() || "—",
-        address: address.trim() || "Flat 4B, Sunrise Apts, Baner Road, Pune — 411045", // fallback to group address
+        pan: pan.trim().toUpperCase() || undefined,
+        aadhaar: aadhaar.trim() || undefined,
+        address: address.trim() || undefined,
       },
       kyc: defaultKyc,
     };

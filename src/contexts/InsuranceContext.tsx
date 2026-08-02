@@ -238,7 +238,6 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
     refreshAll();
   }, [refreshAll]);
 
-  // Optimistic Alerts Reads
   const markAlertReadOptimistic = useCallback(async (id: string) => {
     const originalAlerts = [...alerts];
     setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, read: true } : a)));
@@ -263,7 +262,6 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
     }
   }, [alerts, refreshAlerts]);
 
-  // Optimistic Quote Selection
   const selectQuoteOptimistic = useCallback(async (reqId: string, quoteId: string) => {
     const originalReqs = [...requirements];
     setRequirements((prev) =>
@@ -318,7 +316,6 @@ export function InsuranceProvider({ children }: { children: ReactNode }) {
 
   const getTicketsByMember = (memberId: string): TicketData[] => {
     if (memberId === "all") return tickets;
-    // memberId is optional on TicketData; include tickets where it's unset for backward compat.
     return tickets.filter((t) => !t.memberId || t.memberId === memberId);
   };
 

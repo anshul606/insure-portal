@@ -15,7 +15,6 @@ import type { EndorsementData } from "../../types/models";
 import { endorsementStatusMap as statusMap } from "../../contexts/InsuranceContext";
 import EndorsementDetailModal from "./EndorsementDetailModal";
 
-// Customized connector for Endorsement timeline
 const EndorsementConnector = styled(StepConnector)(() => ({
   [`&.${stepConnectorClasses.alternativeLabel}`]: {
     top: 10,
@@ -101,7 +100,6 @@ export default function EndorsementsTable({
 
   return (
     <UiCard sx={{ p: 0, overflow: "hidden" }}>
-      {/* Desktop Header */}
       <Box
         sx={{
           display: { xs: "none", md: "grid" },
@@ -130,12 +128,10 @@ export default function EndorsementsTable({
         ))}
       </Box>
 
-      {/* Rows */}
       {endorsements.map((end, i) => {
         const st = statusMap[end.status] || { label: end.statusDisplay || end.status, color: "#6B6963", bg: "#F1EFE8" };
         const isExpanded = expandedEndId === end.id;
 
-        // Calculate activeStep and completed states based on timeline step states
         const activeStepIndex = end.timeline ? end.timeline.findIndex((s) => s.state === "current") : -1;
         const fallbackActiveStep = activeStepIndex !== -1 ? activeStepIndex : (end.status === "completed" ? (end.timeline?.length || 0) : 0);
 
@@ -149,7 +145,6 @@ export default function EndorsementsTable({
               bgcolor: isExpanded ? "rgba(20,86,160,0.01)" : "transparent",
             }}
           >
-            {/* Desktop Row */}
             <Box
               onClick={() => toggleExpand(end.id)}
               sx={{
@@ -242,11 +237,10 @@ export default function EndorsementsTable({
               </Button>
             </Box>
 
-            {/* Mobile Row */}
             <Box
               onClick={() => setSelectedEndorsementForModal(end)}
               sx={{
-                display: { xs: "flex", md: "none" },
+                display: { xs: "none", md: "none" },
                 flexDirection: "column",
                 gap: 0.75,
                 px: 2,
@@ -317,7 +311,6 @@ export default function EndorsementsTable({
               </Box>
             </Box>
 
-            {/* Collapsible Timeline Details */}
             {isExpanded && (
               <Box
                 sx={{
@@ -348,7 +341,6 @@ export default function EndorsementsTable({
                   )}
                 </Box>
 
-                {/* Timeline Stepper UI */}
                 {end.timeline && end.timeline.length > 0 && (
                   <Box sx={{ mt: 1, width: "100%", pb: 1 }}>
                     <Stepper

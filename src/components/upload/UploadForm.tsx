@@ -25,7 +25,7 @@ const POLICY_TYPES = [
 ];
 
 const ACCEPTED_TYPES = ".pdf,.jpg,.jpeg,.png";
-const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 const getCategoryFromType = (type: string): string => {
   const lower = type.toLowerCase();
@@ -67,7 +67,6 @@ export default function UploadForm() {
   const [expiryDateIso, setExpiryDateIso] = useState("");
   const [notes, setNotes] = useState("");
 
-  // File state
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -94,7 +93,6 @@ export default function UploadForm() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleFileSelect(e.target.files?.[0] ?? null);
-    // Reset the input so re-selecting the same file triggers onChange
     e.target.value = "";
   };
 
@@ -140,7 +138,6 @@ export default function UploadForm() {
     let createdPolicyId: string | undefined;
 
     try {
-      // Step 1: Create the policy record
       const newPolicy = {
         name: policyType,
         policyNumber: policyNumber.trim(),
@@ -163,7 +160,6 @@ export default function UploadForm() {
       createdPolicyId = created.id;
       await refreshPolicies();
 
-      // Step 2: Upload the document file if one was selected
       if (selectedFile) {
         setUploadProgress("document");
         await api.uploadDocument(selectedFile, {
@@ -326,9 +322,7 @@ export default function UploadForm() {
           onChange={(e) => setNotes(e.target.value)}
         />
 
-        {/* File drop zone */}
         {selectedFile ? (
-          // Selected file preview
           <Box
             sx={{
               border: "1px solid",
@@ -377,7 +371,6 @@ export default function UploadForm() {
             </IconButton>
           </Box>
         ) : (
-          // Drop zone
           <Box
             sx={{
               border: "1.5px dashed",
@@ -411,7 +404,6 @@ export default function UploadForm() {
           </Box>
         )}
 
-        {/* Hidden file input */}
         <input
           ref={fileInputRef}
           type="file"
@@ -427,7 +419,6 @@ export default function UploadForm() {
           </Typography>
         )}
 
-        {/* Progress bar while saving */}
         {saving && (
           <Box>
             <Typography sx={{ fontSize: 11, color: "text.secondary", mb: 0.5 }}>

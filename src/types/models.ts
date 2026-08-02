@@ -167,6 +167,9 @@ export type RequirementData = {
   memberId?: string;
   coverage: number;
   coverageDisplay?: string;
+  budget?: number;
+  budgetDisplay?: string;
+  notes?: string;
   advisor: string;
   status: string;
   statusDisplay?: string;

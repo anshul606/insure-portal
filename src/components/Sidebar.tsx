@@ -130,6 +130,17 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
     if (onClose) onClose();
   };
 
+  const handleLogout = async () => {
+    if (onClose) onClose();
+    try {
+      await api.logout();
+    } catch {}
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("selectedMemberId");
+    window.location.href = "/";
+  };
+
   const content = (
     <Box
       sx={{ p: 2, display: "flex", flexDirection: "column", height: "100%" }}
@@ -361,13 +372,7 @@ export default function Sidebar({ mobileOpen = false, onClose }: SidebarProps) {
           icon={<LogOut size={18} />}
           label="Logout"
           to="#"
-          onClick={() => {
-            if (onClose) onClose();
-            localStorage.removeItem("token");
-            localStorage.removeItem("user");
-            localStorage.removeItem("selectedMemberId");
-            window.location.href = "/";
-          }}
+          onClick={handleLogout}
           color="#A32D2D"
         />
       </Box>

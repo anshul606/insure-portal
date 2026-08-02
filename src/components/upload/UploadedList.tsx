@@ -4,12 +4,6 @@ import Chip from "@mui/material/Chip";
 import UiCard from "../shared/UiCard";
 import { usePolicy } from "../../contexts/InsuranceContext";
 
-// NOTE (soft-delete convention): If a "Delete" action is added to uploaded policies,
-// do NOT call api.deletePolicy(id). Instead use api.updatePolicy(id, { status: "deleted" })
-// via PUT — this is an intentional soft-delete pattern on the backend so advisors retain
-// an audit trail. The backend will filter out status="deleted" policies from normal list
-// responses. Calling the DELETE endpoint would permanently remove the record.
-
 export default function UploadedList() {
     const { policies, loading } = usePolicy();
     

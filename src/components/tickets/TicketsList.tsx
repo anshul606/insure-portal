@@ -35,7 +35,6 @@ export default function TicketsList({ onViewClick }: TicketsListProps) {
 
     return (
         <UiCard sx={{ p: 0, overflow: "hidden" }}>
-            {/* Desktop Table Header */}
             <Box
                 sx={{
                     display: { xs: "none", md: "grid" },
@@ -64,7 +63,6 @@ export default function TicketsList({ onViewClick }: TicketsListProps) {
                 ))}
             </Box>
 
-            {/* Rows */}
             {tickets.map((tkt, i) => {
                 const st = ticketStatusMap[tkt.status as keyof typeof ticketStatusMap];
                 const isHigh = tkt.priority.toLowerCase() === "high";
@@ -77,7 +75,6 @@ export default function TicketsList({ onViewClick }: TicketsListProps) {
                             borderColor: "border.main",
                         }}
                     >
-                        {/* Desktop Row */}
                         <Box
                             sx={{
                                 display: { xs: "none", md: "grid" },
@@ -154,7 +151,6 @@ export default function TicketsList({ onViewClick }: TicketsListProps) {
                             </Button>
                         </Box>
 
-                        {/* Mobile Row */}
                         <Box
                             sx={{
                                 display: { xs: "flex", md: "none" },

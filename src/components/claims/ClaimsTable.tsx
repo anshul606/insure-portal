@@ -14,7 +14,6 @@ import { claimStatusMap as statusMap } from "../../contexts/InsuranceContext";
 import ClaimDetailModal from "./ClaimDetailModal";
 import { QontoConnector, QontoStepIcon } from "../shared/ClaimStepper";
 
-
 export default function ClaimsTable({ claims }: { claims: ClaimData[] }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -71,7 +70,6 @@ export default function ClaimsTable({ claims }: { claims: ClaimData[] }) {
               bgcolor: isExpanded ? "rgba(20,86,160,0.01)" : "transparent",
             }}
           >
-            {/* Desktop Row */}
             <Box
               onClick={() => toggleExpand(claim.id)}
               sx={{
@@ -170,7 +168,6 @@ export default function ClaimsTable({ claims }: { claims: ClaimData[] }) {
               </Button>
             </Box>
 
-            {/* Mobile Row */}
             <Box
               onClick={() => setSelectedClaimForModal(claim)}
               sx={{
@@ -245,7 +242,6 @@ export default function ClaimsTable({ claims }: { claims: ClaimData[] }) {
               </Box>
             </Box>
 
-            {/* Expandable Stepper/Tracker Section */}
             {isExpanded && (
               <Box
                 sx={{
@@ -276,7 +272,6 @@ export default function ClaimsTable({ claims }: { claims: ClaimData[] }) {
                   </Box>
                 </Box>
 
-                {/* Tracker Stepper UI */}
                 {claim.steps && claim.steps.length > 0 && (
                   <Box sx={{ mt: 1, width: "100%", pb: 1 }}>
                     <Stepper

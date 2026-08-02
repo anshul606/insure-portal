@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Chip from "@mui/material/Chip";
@@ -9,14 +9,15 @@ import IconButton from "@mui/material/IconButton";
 import Stepper from "@mui/material/Stepper";
 import Step from "@mui/material/Step";
 import StepLabel from "@mui/material/StepLabel";
+import CircularProgress from "@mui/material/CircularProgress";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
-import { X } from "lucide-react";
+import { X, Download, Upload, FileText } from "lucide-react";
 import { type ReactNode } from "react";
-import type { ClaimData } from "../../types/models";
+import type { ClaimData, DocumentData } from "../../types/models";
 import { claimStatusMap as statusMap } from "../../contexts/InsuranceContext";
 import { QontoConnector, QontoStepIcon } from "../shared/ClaimStepper";
-
+import { api } from "../../services/api";
 
 function SectionTitle({ children }: { children: string }) {
   return (
@@ -83,6 +84,10 @@ export default function ClaimDetailModal({ open, onClose, claim }: Props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [activeClaim, setActiveClaim] = useState<ClaimData | null>(null);
+  const [documents, setDocuments] = useState<DocumentData[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (claim) setActiveClaim(claim);
@@ -90,7 +95,45 @@ export default function ClaimDetailModal({ open, onClose, claim }: Props) {
 
   const currentClaim = claim || activeClaim;
 
+  const loadDocuments = async (claimId: string) => {
+    setLoadingDocs(true);
+    try {
+      const docs = await api.getDocuments({ relatedToId: claimId, docType: "claim-doc" });
+      setDocuments(docs);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingDocs(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentClaim?.id && open) {
+      loadDocuments(currentClaim.id);
+    }
+  }, [currentClaim?.id, open]);
+
   if (!currentClaim) return null;
+
+  const handleUploadDoc = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !currentClaim.id) return;
+    setUploading(true);
+    try {
+      await api.uploadDocument(file, {
+        memberId: currentClaim.memberId,
+        relatedToId: currentClaim.id,
+        docType: "claim-doc",
+        name: file.name,
+      });
+      await loadDocuments(currentClaim.id);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
 
   const st = statusMap[currentClaim.status] || { label: currentClaim.statusDisplay || currentClaim.status, color: "#1456A0", bg: "#EBF3FC" };
 
@@ -234,9 +277,8 @@ export default function ClaimDetailModal({ open, onClose, claim }: Props) {
           <DetailRow label="Date of Incident" value={currentClaim.filedDateDisplay || "—"} />
         </Box>
 
-        {/* Tracker Stepper UI */}
         {currentClaim.steps && currentClaim.steps.length > 0 && (
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mb: 2 }}>
             <SectionTitle>Status Timeline</SectionTitle>
             <Box sx={{ mt: 1.5, width: "100%", pb: 1 }}>
               <Stepper
@@ -269,6 +311,66 @@ export default function ClaimDetailModal({ open, onClose, claim }: Props) {
             </Box>
           </Box>
         )}
+
+        <Box sx={{ mt: 2 }}>
+          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+            <SectionTitle>Attached Documents</SectionTitle>
+            <input
+              type="file"
+              style={{ display: "none" }}
+              ref={fileInputRef}
+              onChange={handleUploadDoc}
+            />
+            <Button
+              size="small"
+              variant="outlined"
+              disabled={uploading}
+              onClick={() => fileInputRef.current?.click()}
+              startIcon={uploading ? <CircularProgress size={12} /> : <Upload size={12} />}
+              sx={{ fontSize: 11, textTransform: "none", py: 0.25, px: 1 }}
+            >
+              {uploading ? "Uploading..." : "Attach Document"}
+            </Button>
+          </Box>
+
+          {loadingDocs ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 1 }}>
+              <CircularProgress size={16} />
+            </Box>
+          ) : documents.length === 0 ? (
+            <Typography sx={{ fontSize: 11, color: "text.disabled" }}>
+              No documents attached yet.
+            </Typography>
+          ) : (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+              {documents.map((doc) => (
+                <Box
+                  key={doc.id}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    p: 1,
+                    borderRadius: 1.5,
+                    bgcolor: "surface.secondary",
+                    border: "1px solid",
+                    borderColor: "border.main",
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
+                    <FileText size={16} color="#1456A0" />
+                    <Typography sx={{ fontSize: 12, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {doc.name}
+                    </Typography>
+                  </Box>
+                  <IconButton size="small" onClick={() => api.downloadDocument(doc.id)}>
+                    <Download size={14} />
+                  </IconButton>
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
       </Box>
 
       <Box

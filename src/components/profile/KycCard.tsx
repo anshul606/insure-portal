@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Box from "@mui/material/Box";
 import UiCard from "../shared/UiCard";
 import Button from "@mui/material/Button";
@@ -6,8 +6,7 @@ import Chip from "@mui/material/Chip";
 import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
 import Alert from "@mui/material/Alert";
-import { AlertTriangle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { AlertTriangle, Upload } from "lucide-react";
 import type { KycItem } from "../../types/models";
 import { api } from "../../services/api";
 
@@ -19,53 +18,73 @@ const kycStatusMap: Record<string, { label: string; color: string; bg: string }>
 
 export default function KycCard({
   memberId,
-  kycItems = [],
+  kycItems: initialKycItems = [],
   onKycUpdated,
 }: {
   memberId?: string;
-  kycItems: KycItem[];
+  kycItems?: KycItem[];
   onKycUpdated?: () => void;
 }) {
-  const navigate = useNavigate();
-  const [submitting, setSubmitting] = useState(false);
-  const [msg, setMsg] = useState<string | null>(null);
+  const [items, setItems] = useState<KycItem[]>(initialKycItems);
+  const [loading, setLoading] = useState(false);
+  const [uploadingLabel, setUploadingLabel] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
-  const pendingCount = kycItems.filter((k) => k.status !== "verified").length;
-
-  const handleCompleteKyc = async () => {
-    if (!memberId) {
-      navigate("/upload");
-      return;
-    }
-    setSubmitting(true);
-    setMsg(null);
+  const loadKyc = async () => {
+    if (!memberId) return;
+    setLoading(true);
+    setError(null);
     try {
-      await api.updateMemberKyc(memberId, { status: "pending" });
-      setMsg("KYC verification request submitted successfully!");
-      if (onKycUpdated) onKycUpdated();
-    } catch (err: any) {
-      navigate("/upload");
+      const data = await api.getMemberKyc(memberId);
+      setItems(data);
+    } catch {
+      setItems(initialKycItems);
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    loadKyc();
+  }, [memberId]);
+
+  const handleFileUpload = async (label: string, file: File) => {
+    if (!memberId) return;
+    setUploadingLabel(label);
+    setError(null);
+    try {
+      await api.uploadMemberKycDocument(memberId, label, file);
+      await loadKyc();
+      if (onKycUpdated) onKycUpdated();
+    } catch (err: any) {
+      setError(err.message || "Failed to upload document");
+    } finally {
+      setUploadingLabel(null);
+    }
+  };
+
+  const pendingCount = items.filter((k) => k.status !== "verified").length;
+
   return (
     <UiCard>
-      <Typography
-        sx={{ fontSize: 14, fontWeight: 600, color: "text.primary", mb: 1.5 }}
-      >
-        KYC Verification
-      </Typography>
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+        <Typography sx={{ fontSize: 14, fontWeight: 600, color: "text.primary" }}>
+          KYC Verification
+        </Typography>
+        {loading && <CircularProgress size={14} />}
+      </Box>
 
-      {msg && (
-        <Alert severity="success" sx={{ mb: 1.5, fontSize: 11, py: 0 }}>
-          {msg}
+      {error && (
+        <Alert severity="error" sx={{ mb: 1.5, fontSize: 11, py: 0 }}>
+          {error}
         </Alert>
       )}
 
-      {kycItems.map((item) => {
+      {items.map((item) => {
         const st = kycStatusMap[item.status] || kycStatusMap["not-added"];
+        const isUploading = uploadingLabel === item.label;
+
         return (
           <Box
             key={item.label}
@@ -78,91 +97,97 @@ export default function KycCard({
               borderColor: "border.main",
               "&:last-of-type": { borderBottom: "none" },
               minHeight: 44,
+              gap: 1,
             }}
           >
             <Typography sx={{ fontSize: 12, fontWeight: 500 }}>
               {item.label}
             </Typography>
-            <Chip
-              label={st.label}
-              size="small"
-              sx={{
-                bgcolor: st.bg,
-                color: st.color,
-                fontWeight: 600,
-                fontSize: 10,
-                height: "auto",
-                px: 0.5,
-                py: 0.25,
-              }}
-            />
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Chip
+                label={st.label}
+                size="small"
+                sx={{
+                  bgcolor: st.bg,
+                  color: st.color,
+                  fontWeight: 600,
+                  fontSize: 10,
+                  height: "auto",
+                  px: 0.5,
+                  py: 0.25,
+                }}
+              />
+
+              {item.status !== "verified" && (
+                <>
+                  <input
+                    type="file"
+                    style={{ display: "none" }}
+                    ref={(el) => { fileInputRefs.current[item.label] = el; }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileUpload(item.label, file);
+                      e.target.value = "";
+                    }}
+                  />
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    disabled={isUploading}
+                    onClick={() => fileInputRefs.current[item.label]?.click()}
+                    startIcon={isUploading ? <CircularProgress size={10} /> : <Upload size={12} />}
+                    sx={{
+                      fontSize: 10,
+                      py: 0.25,
+                      px: 1,
+                      minWidth: 0,
+                      textTransform: "none",
+                    }}
+                  >
+                    {isUploading ? "Uploading..." : "Upload"}
+                  </Button>
+                </>
+              )}
+            </Box>
           </Box>
         );
       })}
 
       {pendingCount > 0 && (
-        <>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 1.25,
-              p: 1.5,
-              borderRadius: 2,
-              bgcolor: "warning.light",
-              border: "1px solid #FAC775",
-              mt: 1.5,
-              mb: 1.25,
-            }}
-          >
-            <AlertTriangle
-              size={16}
-              color="#854F0B"
-              style={{ flexShrink: 0, marginTop: 1 }}
-            />
-            <Box>
-              <Typography
-                sx={{ fontSize: 12, fontWeight: 600, color: "text.primary" }}
-              >
-                {pendingCount} item{pendingCount > 1 ? "s" : ""} pending
-              </Typography>
-              <Typography
-                sx={{ fontSize: 11, color: "text.secondary", mt: 0.25 }}
-              >
-                Complete KYC for faster claim settlement.
-              </Typography>
-            </Box>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 1.25,
+            p: 1.5,
+            borderRadius: 2,
+            bgcolor: "warning.light",
+            border: "1px solid #FAC775",
+            mt: 1.5,
+          }}
+        >
+          <AlertTriangle
+            size={16}
+            color="#854F0B"
+            style={{ flexShrink: 0, marginTop: 1 }}
+          />
+          <Box>
+            <Typography
+              sx={{ fontSize: 12, fontWeight: 600, color: "text.primary" }}
+            >
+              {pendingCount} item{pendingCount > 1 ? "s" : ""} pending
+            </Typography>
+            <Typography
+              sx={{ fontSize: 11, color: "text.secondary", mt: 0.25 }}
+            >
+              Upload documents for pending KYC items to complete verification.
+            </Typography>
           </Box>
-
-          <Button
-            fullWidth
-            size="small"
-            variant="contained"
-            disabled={submitting}
-            onClick={handleCompleteKyc}
-            startIcon={submitting ? <CircularProgress size={12} color="inherit" /> : null}
-            sx={{
-              fontSize: 12,
-              fontWeight: 500,
-              textTransform: "none",
-              minHeight: 36,
-              bgcolor: "info.light",
-              color: "info.main",
-              border: "1px solid #B5D4F4",
-              boxShadow: "none",
-              "&:hover": {
-                bgcolor: "info.light",
-                opacity: 0.9,
-                boxShadow: "none",
-              },
-            }}
-          >
-            {submitting ? "Submitting..." : "Complete KYC"}
-          </Button>
-        </>
+        </Box>
       )}
 
-      {pendingCount === 0 && (
+      {pendingCount === 0 && items.length > 0 && (
         <Box
           sx={{
             display: "flex",

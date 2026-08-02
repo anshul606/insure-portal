@@ -38,7 +38,6 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
 
   const currentTicket = activeTicket || ticket;
 
-  // Auto scroll to bottom when thread changes
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -52,7 +51,7 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
   const handleSendReply = async () => {
     if (!message.trim() || sending) return;
     const text = message.trim();
-    setMessage(""); // Clear input immediately for premium responsiveness
+    setMessage("");
     setSending(true);
 
     const tempMsg: ThreadMessage = {
@@ -64,7 +63,6 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
 
     const originalTicket = { ...currentTicket };
 
-    // Optimistically append the message
     setActiveTicket((prev) => {
       if (!prev) return prev;
       return {
@@ -79,9 +77,8 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
       setActiveTicket(latest);
       await refreshTickets();
     } catch (err) {
-      // Revert on error
       setActiveTicket(originalTicket);
-      setMessage(text); // Restore typed text
+      setMessage(text);
       console.error("Failed to send reply:", err);
     } finally {
       setSending(false);
@@ -90,7 +87,6 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
 
   const content = (
     <Box sx={{ display: "flex", flexDirection: "column", height: isMobile ? "90vh" : 600 }}>
-      {/* Header */}
       <Box sx={{ p: 2, borderBottom: "1px solid", borderColor: "border.main", display: "flex", alignItems: "center", justifyContent: "space-between", bgcolor: "surface.main" }}>
         <Box sx={{ minWidth: 0 }}>
           <Typography sx={{ fontSize: 11, fontWeight: 700, color: "text.disabled", mb: 0.5, fontFamily: "monospace" }}>
@@ -105,7 +101,6 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
         </IconButton>
       </Box>
 
-      {/* Ticket Details Summary */}
       <Box sx={{ p: 2, bgcolor: "surface.secondary", borderBottom: "1px solid", borderColor: "border.main", display: "flex", gap: 3, flexWrap: "wrap" }}>
         <Box>
           <Typography sx={{ fontSize: 11, color: "text.disabled", textTransform: "uppercase" }}>Status</Typography>
@@ -121,7 +116,6 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
         </Box>
       </Box>
 
-      {/* Chat Area */}
       <Box sx={{ flex: 1, p: 2, overflowY: "auto", display: "flex", flexDirection: "column", gap: 2, bgcolor: "#F8F9FC" }}>
         {currentTicket.thread && currentTicket.thread.length > 0 ? (
           currentTicket.thread.map((msg, idx) => {
@@ -185,7 +179,6 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
         <div ref={chatEndRef} />
       </Box>
 
-      {/* Input Area */}
       {currentTicket.status !== "resolved" && (
         <Box sx={{ p: 2, borderTop: "1px solid", borderColor: "border.main", bgcolor: "surface.main" }}>
           <TextField
@@ -237,7 +230,6 @@ export default function TicketChatModal({ open, onClose, ticket }: TicketChatMod
         </Box>
       )}
 
-      {/* Attachment not-yet-available notice */}
       <Snackbar
         open={attachSnack}
         autoHideDuration={3000}

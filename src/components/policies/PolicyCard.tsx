@@ -29,9 +29,18 @@ export default function PolicyCard({
   const iconConfig = getIconForCategory(policy.category, policy.status);
   const coverageText = getCoverageText(policy.category, policy.sumInsured);
 
-  const handleRenew = (e: React.MouseEvent) => {
+  const handleRenew = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/requirements?new=true&policyId=${policy.id}`);
+    try {
+      if (policy.status === "due") {
+        await api.renewPolicy(policy.id);
+      } else {
+        await api.quotePolicy(policy.id);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    navigate("/requirements");
   };
 
   const handleDownloadCertificate = (e: React.MouseEvent) => {

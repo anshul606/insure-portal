@@ -228,7 +228,6 @@ export default function QuoteModal({
           <DetailRow label="Submitted On" value={currentReq.dateDisplay || currentReq.dateIso || "—"} />
         </Box>
 
-        {/* Real Quotes list from API */}
         {currentReq.quotes && currentReq.quotes.length > 0 ? (
           <Box sx={{ mt: 2.5 }}>
             <SectionTitle>
@@ -329,7 +328,6 @@ export default function QuoteModal({
             </Box>
           </Box>
         ) : currentReq.status === "policy-issued" && currentReq.issuedPolicy ? (
-          /* Issued Policy block */
           <Box sx={{ mt: 2.5, p: 2, bgcolor: "success.light", borderRadius: 2, border: "1px solid #C0DD97" }}>
             <Typography sx={{ fontSize: 12, fontWeight: 600, color: "#3B6D11", mb: 1.5, display: "flex", alignItems: "center", gap: 0.5 }}>
               ✓ Policy Issued Successfully

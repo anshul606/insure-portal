@@ -2,10 +2,6 @@ import StepConnector, { stepConnectorClasses } from "@mui/material/StepConnector
 import { styled } from "@mui/material/styles";
 import { Check } from "lucide-react";
 
-/**
- * Shared styled stepper components used by ClaimDetailModal and ClaimsTable.
- * Extracted here to avoid duplication between the two files.
- */
 export const QontoConnector = styled(StepConnector)(() => ({
   [`&.${stepConnectorClasses.alternativeLabel}`]: {
     top: 10,

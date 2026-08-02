@@ -56,7 +56,6 @@ export default function DashboardPage() {
     };
   }, [selectedMemberId]);
 
-  // Find top urgent unread alert (danger or warn first, then any unread)
   const unreadAlerts = alerts.filter((a) => !a.read);
   const topAlert =
     unreadAlerts.find((a) => a.severity === "danger" || a.severity === "warn") ||
@@ -64,8 +63,6 @@ export default function DashboardPage() {
     null;
 
   const handleAlertAction = (alert: AlertData) => {
-    console.log("Alert action clicked:", alert);
-    // Mark alert as read
     api.markAlertRead(alert.id).then(() => {
       setAlerts((prev) => prev.map((a) => (a.id === alert.id ? { ...a, read: true } : a)));
       if (alert.actionTarget) {

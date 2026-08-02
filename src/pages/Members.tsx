@@ -14,7 +14,6 @@ import { useMember } from "../contexts/MemberContext";
 export default function MembersPage() {
   const [showForm, setShowForm] = useState(false);
   const { members } = useMember();
-  // Derive a group label: use the first member's name or a sensible fallback
   const groupLabel = members.length > 0
     ? `${members[0].name.split(" ").slice(-1)[0]} Family Group`
     : "Family Group";

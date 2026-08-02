@@ -76,11 +76,9 @@ export default function AlertsPage() {
   };
 
   const handleAction = async (alert: any) => {
-    // Mark as read first
     if (!alert.read) {
       await handleMarkRead(alert.id);
     }
-    // Navigate if action target exists
     if (alert.actionTarget) {
       navigate(alert.actionTarget);
     }
@@ -138,7 +136,6 @@ export default function AlertsPage() {
           </UiCard>
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-            {/* Unread Alerts Section */}
             {unreadAlerts.length > 0 && (
               <Box>
                 <Typography sx={{ fontSize: 13, fontWeight: 700, color: "text.disabled", textTransform: "uppercase", letterSpacing: "0.05em", mb: 1.5 }}>
@@ -150,7 +147,6 @@ export default function AlertsPage() {
               </Box>
             )}
 
-            {/* Read Alerts Section */}
             {readAlerts.length > 0 && (
               <Box sx={{ mt: unreadAlerts.length > 0 ? 2 : 0 }}>
                 <Typography sx={{ fontSize: 13, fontWeight: 700, color: "text.disabled", textTransform: "uppercase", letterSpacing: "0.05em", mb: 1.5 }}>
@@ -197,7 +193,6 @@ function renderAlertItem(
       }}
     >
       <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-        {/* Severity Icon Container */}
         <Box
           sx={{
             width: 32,
@@ -214,7 +209,6 @@ function renderAlertItem(
           {sev.icon}
         </Box>
 
-        {/* Text Details */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", mb: 0.5 }}>
             <Typography sx={{ fontSize: 14, fontWeight: alert.read ? 500 : 600, color: "text.primary" }}>
@@ -278,7 +272,6 @@ function renderAlertItem(
           </Box>
         </Box>
 
-        {/* Action Button */}
         {alert.actionLabel && (
           <Button
             variant="contained"

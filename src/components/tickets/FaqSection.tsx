@@ -64,7 +64,6 @@ export default function FaqSection() {
         </Typography>
       </Box>
 
-      {/* Search & Category Chips */}
       <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 3 }}>
         <TextField
           placeholder="Search questions or answers..."
@@ -107,7 +106,6 @@ export default function FaqSection() {
         </Box>
       </Box>
 
-      {/* Accordion List */}
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
           <CircularProgress size={28} />

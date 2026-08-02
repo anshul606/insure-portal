@@ -1,8 +1,7 @@
 const rawApiUrl = import.meta.env.VITE_API_URL;
-const BASE_URL = rawApiUrl && rawApiUrl.startsWith("/")
-  ? (rawApiUrl.endsWith("/customer-beta") ? rawApiUrl : `${rawApiUrl}/customer-beta`)
-  : "/customer-beta";
-
+const BASE_URL = rawApiUrl
+  ? (rawApiUrl.endsWith("/") ? rawApiUrl.slice(0, -1) : rawApiUrl)
+  : "/customer-beta/customer-api";
 
 export type ApiResponse<T> = {
   data: T;
@@ -54,7 +53,9 @@ export function buildUrl(path: string, params?: Record<string, string | number |
   const fullBase = BASE_URL.startsWith("http")
     ? BASE_URL
     : `${window.location.origin}${BASE_URL}`;
-  const url = new URL(`${fullBase}${path}`);
+  const cleanBase = fullBase.endsWith("/") ? fullBase.slice(0, -1) : fullBase;
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const url = new URL(`${cleanBase}${cleanPath}`);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value !== undefined && value !== null && value !== "") {
@@ -74,7 +75,8 @@ export function getAssetUrl(path?: string): string {
   const fullBase = BASE_URL.startsWith("http")
     ? BASE_URL
     : `${window.location.origin}${BASE_URL}`;
-  return `${fullBase}${cleanPath}`;
+  const cleanBase = fullBase.endsWith("/") ? fullBase.slice(0, -1) : fullBase;
+  return `${cleanBase}${cleanPath}`;
 }
 
 export async function downloadFile(path: string, fallbackFileName: string = "download.pdf"): Promise<void> {
@@ -87,6 +89,15 @@ export async function downloadFile(path: string, fallbackFileName: string = "dow
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("selectedMemberId");
+      if (window.location.pathname !== "/" && !isRedirectingToLogin) {
+        isRedirectingToLogin = true;
+        window.location.href = "/";
+      }
+    }
     let errText = "Failed to download file";
     try {
       const errObj = await response.json();

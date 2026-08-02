@@ -116,7 +116,6 @@ export default function EndorsementForm({
           mb: 1.5,
         }}
       >
-        {/* Policy Select */}
         <FormControl fullWidth size="small" required>
           <InputLabel
             sx={{
@@ -144,7 +143,6 @@ export default function EndorsementForm({
           </Select>
         </FormControl>
 
-        {/* Member Select */}
         <FormControl fullWidth size="small" required>
           <InputLabel
             sx={{
@@ -174,7 +172,6 @@ export default function EndorsementForm({
           </Select>
         </FormControl>
 
-        {/* Endorsement Type Select */}
         <FormControl fullWidth size="small" required>
           <InputLabel
             sx={{

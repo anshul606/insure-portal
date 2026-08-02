@@ -17,7 +17,6 @@ import { type ReactNode } from "react";
 import type { EndorsementData } from "../../types/models";
 import { endorsementStatusMap as statusMap } from "../../contexts/InsuranceContext";
 
-// Customized connector for Endorsement timeline
 const EndorsementConnector = styled(StepConnector)(() => ({
   [`&.${stepConnectorClasses.alternativeLabel}`]: {
     top: 10,
@@ -163,7 +162,6 @@ export default function EndorsementDetailModal({ open, onClose, endorsement }: P
 
   const st = statusMap[currentEndorsement.status] || { label: currentEndorsement.statusDisplay || currentEndorsement.status, color: "#1456A0", bg: "#EBF3FC" };
 
-  // Calculate step status fallback index
   const fallbackActiveStep = currentEndorsement.timeline?.findIndex((t) => t.state === "current") ?? 0;
 
   const content = (
@@ -302,7 +300,6 @@ export default function EndorsementDetailModal({ open, onClose, endorsement }: P
           )}
         </Box>
 
-        {/* Timeline Stepper UI */}
         {currentEndorsement.timeline && currentEndorsement.timeline.length > 0 && (
           <Box sx={{ mt: 2 }}>
             <SectionTitle>Status Timeline</SectionTitle>

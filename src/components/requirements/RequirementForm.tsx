@@ -56,12 +56,15 @@ export default function RequirementForm({
 
     const selectedMember = members.find((m) => m.id === memberId);
     const memberName = memberId === "all" ? "Entire Family" : (selectedMember?.name || "Family Member");
+    const budgetNum = budget.trim() ? parseFloat(budget.replace(/,/g, "")) : undefined;
 
     const newRequirement = {
       type,
       member: memberName,
       memberId: memberId,
       coverage: covNum,
+      budget: budgetNum,
+      notes: notes.trim() || undefined,
       advisor: "Arjun Mehta",
       status: "new",
       dateIso: new Date().toISOString().split("T")[0],

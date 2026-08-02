@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
@@ -9,7 +9,8 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Alert from "@mui/material/Alert";
 import CircularProgress from "@mui/material/CircularProgress";
-import { Paperclip } from "lucide-react";
+import IconButton from "@mui/material/IconButton";
+import { Paperclip, X } from "lucide-react";
 import UiCard from "../shared/UiCard";
 import { useMember } from "../../contexts/MemberContext";
 import { usePolicy, useClaim } from "../../contexts/InsuranceContext";
@@ -29,6 +30,8 @@ export default function ClaimForm({
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [formData, setFormData] = useState({
     policy: "",
@@ -39,6 +42,16 @@ export default function ClaimForm({
     hospital: "",
     description: "",
   });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFiles((prev) => [...prev, ...Array.from(e.target.files!)]);
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,7 +94,17 @@ export default function ClaimForm({
     };
 
     try {
-      await api.createClaim(newClaim);
+      const createdClaim = await api.createClaim(newClaim);
+      if (files.length > 0 && createdClaim?.id) {
+        for (const file of files) {
+          await api.uploadDocument(file, {
+            memberId: formData.member,
+            relatedToId: createdClaim.id,
+            docType: "claim-doc",
+            name: file.name,
+          });
+        }
+      }
       await refreshClaims();
       onSubmit();
     } catch (err: any) {
@@ -122,7 +145,6 @@ export default function ClaimForm({
           mb: 1.5,
         }}
       >
-        {/* Policy Select */}
         <FormControl fullWidth size="small" required>
           <InputLabel
             sx={{
@@ -150,7 +172,6 @@ export default function ClaimForm({
           </Select>
         </FormControl>
 
-        {/* Member Select */}
         <FormControl fullWidth size="small" required>
           <InputLabel
             sx={{
@@ -180,7 +201,6 @@ export default function ClaimForm({
           </Select>
         </FormControl>
 
-        {/* Claim Type Select */}
         <FormControl fullWidth size="small" required>
           <InputLabel
             sx={{
@@ -299,7 +319,16 @@ export default function ClaimForm({
         }}
       />
 
+      <input
+        type="file"
+        multiple
+        style={{ display: "none" }}
+        ref={fileInputRef}
+        onChange={handleFileChange}
+      />
+
       <Box
+        onClick={() => fileInputRef.current?.click()}
         sx={{
           border: "1.5px dashed",
           borderColor: "border.light",
@@ -330,6 +359,30 @@ export default function ClaimForm({
           Bills, Discharge Summary, Prescriptions · Max 10MB each
         </Typography>
       </Box>
+
+      {files.length > 0 && (
+        <Box sx={{ mb: 1.5, display: "flex", flexDirection: "column", gap: 0.5 }}>
+          {files.map((file, idx) => (
+            <Box
+              key={idx}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                bgcolor: "surface.secondary",
+                px: 1.5,
+                py: 0.75,
+                borderRadius: 1,
+              }}
+            >
+              <Typography sx={{ fontSize: 12, fontWeight: 500 }}>{file.name}</Typography>
+              <IconButton size="small" onClick={() => removeFile(idx)}>
+                <X size={14} />
+              </IconButton>
+            </Box>
+          ))}
+        </Box>
+      )}
 
       <Box
         sx={{

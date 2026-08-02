@@ -16,6 +16,7 @@ import type {
   BrandingData,
   ChangePasswordRequest,
   Preferences,
+  KycItem,
 } from "../types/models";
 
 let cachedMembers: Member[] = [];
@@ -106,6 +107,17 @@ export const api = {
     return res.data;
   },
 
+  getMemberKyc: async (id: string): Promise<KycItem[]> => {
+    const res = await apiClient.get<KycItem[]>(`/api/members/${id}/kyc`);
+    return res.data;
+  },
+
+  uploadMemberKycDocument: async (id: string, label: string, file: File): Promise<void> => {
+    const form = new FormData();
+    form.append("file", file, file.name);
+    await apiClient.upload(`/api/members/${id}/kyc/${encodeURIComponent(label)}/document`, form);
+  },
+
   updateMemberKyc: async (id: string, patch: { status: string }): Promise<Member> => {
     try {
       const res = await apiClient.patch<Member>(`/api/members/${id}`, { status: patch.status });
@@ -151,7 +163,17 @@ export const api = {
   },
 
   downloadCertificate: async (id: string): Promise<void> => {
-    await downloadFile(`/api/policies/${id}/certificate`, `policy-certificate-${id}.pdf`);
+    await downloadFile(`/api/policies/${id}/document/download`, `policy-certificate-${id}.pdf`);
+  },
+
+  renewPolicy: async (id: string): Promise<RequirementData> => {
+    const res = await apiClient.post<RequirementData>(`/api/policies/${id}/renew`);
+    return res.data;
+  },
+
+  quotePolicy: async (id: string): Promise<RequirementData> => {
+    const res = await apiClient.post<RequirementData>(`/api/policies/${id}/quote`);
+    return res.data;
   },
 
   getClaims: async (params?: ListParams): Promise<ClaimData[]> => {
@@ -275,11 +297,6 @@ export const api = {
 
   getDocumentById: async (id: string): Promise<DocumentData> => {
     const res = await apiClient.get<DocumentData>(`/api/documents/${id}`);
-    return res.data;
-  },
-
-  createDocument: async (data: Partial<DocumentData>): Promise<DocumentData> => {
-    const res = await apiClient.post<DocumentData>("/api/documents", data);
     return res.data;
   },
 
